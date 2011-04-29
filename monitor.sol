@@ -23,15 +23,15 @@ end
 
 # hardware sensor data
 run "/usr/bin/sensors" do
-    match /^Core 0:\s+\+(\d+\.\d+)°C/, :record => "system.sensor.coretemp", :as => :to_f, :unit => :'°C'
-    match /^temp1:\s+\+(\d+\.\d+)°C/,  :record => "system.sensor.temp1",    :as => :to_f, :unit => :'°C'
-    match /^temp2:\s+\+(\d+\.\d+)°C/,  :record => "system.sensor.temp2",    :as => :to_f, :unit => :'°C'
-    match /^temp3:\s+\+(\d+\.\d+)°C/,  :record => "system.sensor.temp3",    :as => :to_f, :unit => :'°C'
+    match /^Core 0:\s+\+(\d+\.\d+)°C/, :record => "system.sensor.coretemp", :as => :to_f, :unit => :C
+    match /^temp1:\s+\+(\d+\.\d+)°C/,  :record => "system.sensor.temp1",    :as => :to_f, :unit => :C
+    match /^temp2:\s+\+(\d+\.\d+)°C/,  :record => "system.sensor.temp2",    :as => :to_f, :unit => :C
+    match /^temp3:\s+\+(\d+\.\d+)°C/,  :record => "system.sensor.temp3",    :as => :to_f, :unit => :C
 end
 
 # system uptime
 read "/proc/uptime" do
-    match /^(\d+\.\d+)/, :measure => "system.uptime", :as => :to_f, :unit => :s
+    match /^(\d+\.\d+)/, :measure => "system.uptime", :as => :to_f, :unit => :seconds
 end
 
 # system load
@@ -62,18 +62,16 @@ read "/proc/stat" do
             irqsoft_metric = "system.cpu.core#{i}.irqsoft"
             
             # cumulative time spent in 'jiffies' (1/100 sec) since system boot
-            record user_metric,    m[1].to_i, :unit => :jiffy
-            record nice_metric,    m[2].to_i, :unit => :jiffy
-            record system_metric,  m[3].to_i, :unit => :jiffy
-            record idle_metric,    m[4].to_i, :unit => :jiffy
-            record iowait_metric,  m[5].to_i, :unit => :jiffy
-            record irqhard_metric, m[6].to_i, :unit => :jiffy
-            record irqsoft_metric, m[7].to_i, :unit => :jiffy
+            record user_metric,    m[1].to_i, :unit => :jiffies
+            record nice_metric,    m[2].to_i, :unit => :jiffies
+            record system_metric,  m[3].to_i, :unit => :jiffies
+            record idle_metric,    m[4].to_i, :unit => :jiffies
+            record iowait_metric,  m[5].to_i, :unit => :jiffies
+            record irqhard_metric, m[6].to_i, :unit => :jiffies
+            record irqsoft_metric, m[7].to_i, :unit => :jiffies
             
             # calculate cpu utilization
-            utilization = lambda {|path| rate[resolve(path), :jiffy, 0.01] }
-            
-            # record avg cpu utilization
+            utilization = lambda {|path| rate[resolve(path), :jiffies, 0.01] }
             record user_metric,    utilization[user_metric,   ], :unit => :%
             record nice_metric,    utilization[nice_metric,   ], :unit => :%
             record system_metric,  utilization[system_metric, ], :unit => :%
@@ -105,8 +103,8 @@ disks = ['sda']
 disks.each do |dev|
     run "/usr/sbin/smartctl -HA /dev/#{dev}" do
         match /^SMART overall\-health self\-assessment test result: (\w+)$/, :measure => "system.disk.#{dev}.smart"
-        match /^\s*9\s+Power_On_Hours\s+0x\d+\s+\d+\s+\d+\s+\d+\s+\w+\s+\w+\s+\S+\s+(\d+)$/, :measure => "system.disk.#{dev}.age", :as => :to_i, :unit => :hour
-        match /^\s*194\s+Temperature_Celsius\s+0x\d+\s+\d+\s+\d+\s+\d+\s+\w+\s+\w+\s+\-\s+(\d+)$/, :record => "system.disk.#{dev}.temp", :as => :to_i, :unit => :'°C'
+        match /^\s*9\s+Power_On_Hours\s+0x\d+\s+\d+\s+\d+\s+\d+\s+\w+\s+\w+\s+\S+\s+(\d+)$/, :measure => "system.disk.#{dev}.age", :as => :to_i, :unit => :hours
+        match /^\s*194\s+Temperature_Celsius\s+0x\d+\s+\d+\s+\d+\s+\d+\s+\w+\s+\w+\s+\-\s+(\d+)$/, :record => "system.disk.#{dev}.temp", :as => :to_i, :unit => :C
     end
 end
 
@@ -118,13 +116,11 @@ read "/proc/diskstats" do
             write_metric = "system.disk.#{dev}.io.write"
             
             # cumulative 512B sectors since system boot
-            record read_metric,  m[1].to_i, :unit => :sector
-            record write_metric, m[2].to_i, :unit => :sector
+            record read_metric,  m[1].to_i, :unit => :sectors
+            record write_metric, m[2].to_i, :unit => :sectors
             
             # calculate io utilization
-            utilization = lambda {|path| rate[resolve(path), :sector, 0.5] }
-            
-            # record avg io utilization
+            utilization = lambda {|path| rate[resolve(path), :sectors, 0.5] }
             record read_metric,  utilization[read_metric ], :unit => :kBps
             record write_metric, utilization[write_metric], :unit => :kBps
         end
@@ -145,10 +141,20 @@ read "/proc/net/dev" do
             tx_metric = "system.net.#{dev}.io.tx"
             
             # cumulative since system boot
-            record rx_metric, m[1].to_i, :unit => :B
-            record rx_metric, m[2].to_i, :unit => :packet
-            record tx_metric, m[3].to_i, :unit => :B
-            record tx_metric, m[4].to_i, :unit => :packet
+            record rx_metric, m[1].to_i, :unit => :bytes
+            record rx_metric, m[2].to_i, :unit => :packets
+            record tx_metric, m[3].to_i, :unit => :bytes
+            record tx_metric, m[4].to_i, :unit => :packets
+            
+            # calculate io bandwidth
+            bandwidth = lambda {|path| rate[resolve(path), :bytes, 8.0/1024] }
+            record rx_metric, bandwidth[rx_metric], :unit => :kbps
+            record tx_metric, bandwidth[tx_metric], :unit => :kbps
+            
+            # calculate packet rate
+            packets = lambda {|path| rate[resolve(path), :packets, 1] }
+            record rx_metric, packets[rx_metric], :unit => :'packets/s'
+            record tx_metric, packets[tx_metric], :unit => :'packets/s'
         end
     end
 end
@@ -156,7 +162,7 @@ end
 # interface link and address information
 interfaces.each do |dev|
     run "/sbin/ip address show #{dev}" do
-        match /^\d+: #{dev}: <.+> mtu (\d+)/, :measure => "system.net.#{dev}.link.mtu", :as => :to_i, :unit => :B
+        match /^\d+: #{dev}: <.+> mtu (\d+)/, :measure => "system.net.#{dev}.link.mtu", :as => :to_i, :unit => :bytes
         match /^\s*link\/([\w.\/]+) ([0-9a-f:]+) brd ([0-9a-f:]+)/ do |m|
             measure "system.net.#{dev}.link.type",      m[1].to_s
             measure "system.net.#{dev}.link.address",   m[2].to_s
