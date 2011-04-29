@@ -71,4 +71,22 @@ module Solanum
         File.open(path, 'w') {|f| f << hash.to_yaml }
     end
     
+    # Prints out metrics and current values, sorted by key.
+    def self.print_metrics(category, ancestors=[])
+        category.keys.map{|k| k.to_s }.sort.each do |key|
+            path = ancestors.dup << key
+            child = category[key.intern]
+            
+            if child.is_a? Solanum::Metrics::Category
+                print_metrics child, path
+            else
+                units = child.records.map{|r| r.unit }.uniq
+                units.each do |unit|
+                    record = child.records.find{|r| r.unit == unit }
+                    puts "%s: %s%s" % [path.join('.'), record.value, unit && (" " << unit.to_s) || ""]
+                end
+            end
+        end
+    end
+    
 end
