@@ -82,7 +82,7 @@ module Solanum
             else
                 units = child.records.map{|r| r.unit }.uniq
                 units.each do |unit|
-                    record = child.records.find{|r| r.unit == unit }
+                    record = child.records.reverse.find{|r| r.unit == unit }
                     puts "%s: %s%s" % [path.join('.'), record.value, unit && (" " << unit.to_s) || ""]
                 end
             end
