@@ -11,7 +11,7 @@ rate = lambda do |metric, from_unit, scale|
         b = records[records.length - 2]
         dv = a.value - b.value
         dt = a.time  - b.time
-        (( dv >= 0 ) && ( dt > 0 )) ? scale*dv/dt : nil
+        (( dv >= 0 ) && ( dt > 0 )) ? scale.to_f*dv/dt : nil
     else
         nil
     end
@@ -71,7 +71,7 @@ read "/proc/stat" do
             record irqsoft_metric, m[7].to_i, :unit => :jiffies
             
             # calculate cpu utilization
-            utilization = lambda {|path| rate[resolve(path), :jiffies, 0.01] }
+            utilization = lambda {|path| rate[resolve(path), :jiffies, 1.0] }
             record user_metric,    utilization[user_metric,   ], :unit => :%
             record nice_metric,    utilization[nice_metric,   ], :unit => :%
             record system_metric,  utilization[system_metric, ], :unit => :%
@@ -85,12 +85,15 @@ end
 
 # memory usage
 read "/proc/meminfo" do
-    match /^MemTotal:\s+(\d+) kB$/,  :record => "system.memory.total",   :as => :to_i, :unit => :kB
-    match /^MemFree:\s+(\d+) kB$/,   :record => "system.memory.free",    :as => :to_i, :unit => :kB
-    match /^Buffers:\s+(\d+) kB$/,   :record => "system.memory.buffers", :as => :to_i, :unit => :kB
-    match /^Cached:\s+(\d+) kB$/,    :record => "system.memory.cached",  :as => :to_i, :unit => :kB
-    match /^SwapTotal:\s+(\d+) kB$/, :record => "system.swap.total",     :as => :to_i, :unit => :kB
-    match /^SwapFree:\s+(\d+) kB$/,  :record => "system.swap.free",      :as => :to_i, :unit => :kB
+    match /^MemTotal:\s+(\d+) kB$/,  :measure => "system.memory.total",   :as => :to_i, :unit => :kB
+    match /^MemFree:\s+(\d+) kB$/,   :record  => "system.memory.free",    :as => :to_i, :unit => :kB
+    match /^Buffers:\s+(\d+) kB$/,   :record  => "system.memory.buffers", :as => :to_i, :unit => :kB
+    match /^Cached:\s+(\d+) kB$/,    :record  => "system.memory.cached",  :as => :to_i, :unit => :kB
+    
+    match /^SwapTotal:\s+(\d+) kB$/, :measure => "system.swap.total",     :as => :to_i, :unit => :kB
+    match /^SwapFree:\s+(\d+) kB$/,  :record  => "system.swap.free",      :as => :to_i, :unit => :kB
+    
+    # TODO: percentages
 end
 
 
