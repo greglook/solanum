@@ -97,7 +97,7 @@ end
 
 ##### DISK INFORMATION #####
 
-disks = ['sda']
+disks = Dir['/dev/sd*'].map{|dev| dev[5..7] }.uniq.sort
 
 # SMART health
 disks.each do |dev|
