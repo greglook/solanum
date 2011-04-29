@@ -1,6 +1,8 @@
 # This file defines the Solanum::Lang::RootContext class.
 
 
+require 'solanum/lang/input_context'
+require 'solanum/monitor'
 require 'solanum/monitor/source'
 
 
@@ -12,11 +14,11 @@ module Lang
 #
 # Author:: Greg Look
 class RootContext
-    attr_reader :sources
+    attr_reader :monitor
     
     # Creates a new RootContext
     def initialize
-        @sources = [ ]
+        @monitor = Solanum::Monitor.new
     end
     
     # Creates a :command Source and configures it with the matchers defined in
@@ -27,7 +29,7 @@ class RootContext
         context = InputContext.new(source)
         context.instance_exec &block
         
-        @sources << source
+        @monitor.sources << source
     end
     
     # Creates a :file source and configures it with the matchers defined in
@@ -38,12 +40,12 @@ class RootContext
         context = InputContext.new(source)
         context.instance_exec &block
         
-        @sources << source
+        @monitor.sources << source
     end
     
     # Computes records directly.
     def compute(&block)
-        source = Solanum::Monitor::Source.new(:compute, block)
+        @monitor.sources << Solanum::Monitor::Source.new(:compute, block)
     end
 end
 

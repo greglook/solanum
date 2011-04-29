@@ -42,7 +42,7 @@ class InputContext
             end
         end
         
-        @source.matchers << Solanum::Monitor::Matcher.new(pattern, block)
+        @source.matchers << Solanum::Monitor::Matcher.new(pattern, &block)
     end
 end
 

@@ -2,10 +2,27 @@
 # vim: ft=ruby
 
 
+# Utility procedure to calculate utilization metrics.
+rate = lambda do |metric, from_unit, scale|
+    records = metric.records.select {|r| r.unit == from_unit }
+    
+    if records.length > 1
+        a = records[records.length - 1]
+        b = records[records.length - 2]
+        dv = a.value - b.value
+        dt = a.time  - b.time
+        (( dv >= 0 ) && ( dt > 0 )) ? scale*dv/dt : nil
+    else
+        nil
+    end
+end
+
+
+
 ##### SYSTEM STATUS #####
 
 # hardware sensor data
-run "sensors" do
+run "/usr/bin/sensors" do
     match /^Core 0:\s+\+(\d+\.\d+)°C/, :record => "system.sensor.coretemp", :as => :to_f, :unit => :'°C'
     match /^temp1:\s+\+(\d+\.\d+)°C/,  :record => "system.sensor.temp1",    :as => :to_f, :unit => :'°C'
     match /^temp2:\s+\+(\d+\.\d+)°C/,  :record => "system.sensor.temp2",    :as => :to_f, :unit => :'°C'
@@ -35,7 +52,7 @@ end
 read "/proc/stat" do
     cores = [0, 1]
     cores.each do |i|
-        match /^cpu#{i} (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) \d+ \d+$/ do |m|
+        match /^cpu#{i} (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+)/ do |m|
             user_metric    = "system.cpu.core#{i}.user"
             nice_metric    = "system.cpu.core#{i}.nice"
             system_metric  = "system.cpu.core#{i}.system"
@@ -54,30 +71,21 @@ read "/proc/stat" do
             record irqsoft_metric, m[7].to_i, :unit => :jiffy
             
             # calculate cpu utilization
-            util = lambda do |metric|
-                records = recall metric, :unit => :jiffy
-                if records.length > 1
-                    dv = records[0].value - records[1].value
-                    dt = records[0].time - records[1].time
-                    ( dv >= 0 ) ? dv/(100.0*dt) : nil
-                else
-                    nil
-                end
-            end
+            utilization = lambda {|path| rate[resolve(path), :jiffy, 0.01] }
             
             # record avg cpu utilization
-            record user_metric,    util[user_metric   ], :unit => :%
-            record nice_metric,    util[nice_metric   ], :unit => :%
-            record system_metric,  util[system_metric ], :unit => :%
-            record idle_metric,    util[idle_metric   ], :unit => :%
-            record iowait_metric,  util[iowait_metric ], :unit => :%
-            record irqhard_metric, util[irqhard_metric], :unit => :%
-            record irqsoft_metric, util[irqsoft_metric], :unit => :%
+            record user_metric,    utilization[user_metric,   ], :unit => :%
+            record nice_metric,    utilization[nice_metric,   ], :unit => :%
+            record system_metric,  utilization[system_metric, ], :unit => :%
+            record idle_metric,    utilization[idle_metric,   ], :unit => :%
+            record iowait_metric,  utilization[iowait_metric, ], :unit => :%
+            record irqhard_metric, utilization[irqhard_metric,], :unit => :%
+            record irqsoft_metric, utilization[irqsoft_metric,], :unit => :%
         end
     end
 end
 
-# memory utilization
+# memory usage
 read "/proc/meminfo" do
     match /^MemTotal:\s+(\d+) kB$/,  :record => "system.memory.total",   :as => :to_i, :unit => :kB
     match /^MemFree:\s+(\d+) kB$/,   :record => "system.memory.free",    :as => :to_i, :unit => :kB
@@ -95,7 +103,7 @@ disks = ['sda']
 
 # SMART health
 disks.each do |dev|
-    run "smartctl -HA /dev/#{dev}" do
+    run "/usr/sbin/smartctl -HA /dev/#{dev}" do
         match /^SMART overall\-health self\-assessment test result: (\w+)$/, :measure => "system.disk.#{dev}.smart"
         match /^\s*9\s+Power_On_Hours\s+0x\d+\s+\d+\s+\d+\s+\d+\s+\w+\s+\w+\s+\S+\s+(\d+)$/, :measure => "system.disk.#{dev}.age", :as => :to_i, :unit => :hour
         match /^\s*194\s+Temperature_Celsius\s+0x\d+\s+\d+\s+\d+\s+\d+\s+\w+\s+\w+\s+\-\s+(\d+)$/, :record => "system.disk.#{dev}.temp", :as => :to_i, :unit => :'°C'
@@ -103,12 +111,22 @@ disks.each do |dev|
 end
 
 # disk utilization
-# cumulative 512B sectors since system boot
 read "/proc/diskstats" do
     disks.each do |dev|
         match /^\s*\d+\s+\d+\s+#{dev}\s+\d+\s+\d+\s+(\d+)\s+\d+\s+\d+\s+\d+\s+(\d+)\s+\d+\s+\d+\s+\d+\s+\d+$/ do |m|
-            record "system.disk.#{dev}.io.read",  m[1].to_i, :unit => :sector
-            record "system.disk.#{dev}.io.write", m[2].to_i, :unit => :sector
+            read_metric = "system.disk.#{dev}.io.read"
+            write_metric = "system.disk.#{dev}.io.write"
+            
+            # cumulative 512B sectors since system boot
+            record read_metric,  m[1].to_i, :unit => :sector
+            record write_metric, m[2].to_i, :unit => :sector
+            
+            # calculate io utilization
+            utilization = lambda {|path| rate[resolve(path), :sector, 0.5] }
+            
+            # record avg io utilization
+            record read_metric,  utilization[read_metric ], :unit => :kBps
+            record write_metric, utilization[write_metric], :unit => :kBps
         end
     end
 end
@@ -123,20 +141,22 @@ interfaces = ['wan0', 'lan0', 'wlan0']
 read "/proc/net/dev" do
     interfaces.each do |dev|
         match /^\s*#{dev}:\s*(\d+)\s+(\d+)\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+)\s+(\d+)\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+$/ do |m|
+            rx_metric = "system.net.#{dev}.io.rx"
+            tx_metric = "system.net.#{dev}.io.tx"
             
             # cumulative since system boot
-            record "system.net.#{dev}.io.rx", m[1].to_i, :unit => :B
-            record "system.net.#{dev}.io.rx", m[2].to_i, :unit => :packet
-            record "system.net.#{dev}.io.tx", m[3].to_i, :unit => :B
-            record "system.net.#{dev}.io.tx", m[4].to_i, :unit => :packet
+            record rx_metric, m[1].to_i, :unit => :B
+            record rx_metric, m[2].to_i, :unit => :packet
+            record tx_metric, m[3].to_i, :unit => :B
+            record tx_metric, m[4].to_i, :unit => :packet
         end
     end
 end
 
 # interface link and address information
 interfaces.each do |dev|
-    run "ip address show #{dev}" do
-        match /^\d+: #{dev}: <.+> mtu (\d+)/, :measure => "system.net.#{dev}.link.mtu", :as => :to_i, :unit => 'B'
+    run "/sbin/ip address show #{dev}" do
+        match /^\d+: #{dev}: <.+> mtu (\d+)/, :measure => "system.net.#{dev}.link.mtu", :as => :to_i, :unit => :B
         match /^\s*link\/([\w.\/]+) ([0-9a-f:]+) brd ([0-9a-f:]+)/ do |m|
             measure "system.net.#{dev}.link.type",      m[1].to_s
             measure "system.net.#{dev}.link.address",   m[2].to_s
@@ -144,7 +164,7 @@ interfaces.each do |dev|
         end
         match /^\s*inet ([\d.]+)\/(\d+) brd ([\d.]+) scope (\w+)/ do |m|
             measure "system.net.#{dev}.inet.address",   m[1].to_s
-            measure "system.net.#{dev}.inet.mask"       m[2].to_i
+            measure "system.net.#{dev}.inet.mask",      m[2].to_i
             measure "system.net.#{dev}.inet.broadcast", m[3].to_s
             measure "system.net.#{dev}.inet.scope",     m[4].to_s
         end
