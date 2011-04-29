@@ -13,10 +13,7 @@ $data_file = ARGV.shift || "data.yml"
 
 
 $monitor = Solanum.load_monitor($monitor_file)
-$metrics = Solanum.load_metrics($data_file)
-
-raise "metrics is nil!" unless $metrics
-$metrics ||= Solanum::Metrics.new
+$metrics = Solanum.load_metrics($data_file) || Solanum::Metrics.new
 
 $monitor.collect $metrics
 
