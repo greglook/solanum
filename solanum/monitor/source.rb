@@ -12,9 +12,11 @@ class Source
     attr_reader :type, :value
     attr_reader :matchers
     
+    TYPES = [:command, :file, :compute].freeze
+    
     # Creates a new Source
     def initialize(type, value)
-        raise "Unknown source type #{type}" unless [:command, :file, :compute].include? type
+        raise "Unknown source type #{type}" unless TYPES.include? type
         @type = type
         @value = value
         @matchers = [ ]
@@ -33,7 +35,9 @@ class Source
             # collect input
             if @type == :command
                 lines = %x{#{@value}}.split("\n")
+                puts "Error executing command: #{@value}" unless $?.success?
             elsif @type == :file
+                puts "File does not exist: #{@value}" unless File.exists? @value
                 File.open(@value) {|file| lines = file.readlines } if File.readable? @value
             end
             
