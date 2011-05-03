@@ -2,9 +2,10 @@
 # vim: ft=ruby
 
 
-compute do
+metrics_helpers do
     
-    # Utility procedure to calculate utilization metrics.
+    # Calculates the rate of change in of the metric value in the given unit
+    # type, optionaly multiplied by a scalar value.
     def rate_of(metric, new_value, unit, scale=1.0)
         old_value = metric.value unit
         return nil unless old_value
@@ -12,6 +13,19 @@ compute do
         dv = new_value - old_value
         dt = Time.now  - metric.time
         r = ( dt > 0 ) ? scale.to_f*dv/dt : nil
+    end
+    
+    # Records simple network traffic metrics based on cumulative transferred
+    # byte and packet counts.
+    def record_traffic(name, packets, bytes)
+        metric = get_metric name
+        pps = rate_of metric, packets, :packets
+        kbit = rate_of metric, bytes, :bytes, 8.0/1024
+        
+        metric.record bytes, :bytes
+        metric.record kbit, :kbit
+        metric.record packets, :packets
+        metric.record pps, :pps
     end
     
 end
@@ -135,18 +149,8 @@ read "/proc/net/dev" do
         match /^\s*#{dev}:\s*(\d+)\s+(\d+)\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+)\s+(\d+)\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+$/ do |m|
             # calculate io utilization from cumulative data transferred and
             # packets since system boot
-            %w{rx tx}.each_with_index do |name, i|
-                metric = get_metric "system.net.#{dev}.io.#{name}"
-                data  = m[2*i+0].to_i
-                count = m[2*i+1].to_i
-                
-                kbit = rate_of metric, data, :bytes, 8.0/1024
-                rate = rate_of metric, count, :packets
-                
-                metric.record data, :bytes
-                metric.record kbit, :kbit
-                metric.record count, :packets
-                metric.record rate, :pps
+            %w{rx tx}.each_with_index do |type, i|
+                record_traffic "system.net.#{dev}.io.#{type}", m[2*i+1].to_i, m[2*i+0].to_i
             end
         end
     end
@@ -173,5 +177,61 @@ interfaces.each do |dev|
             record "system.net.#{dev}.inet6.scope",    m[3].to_s
         end
     end
+end
+
+
+
+##### FIREWALL STATISTICS #####
+
+input_helpers do
+    
+    # Matches an iptables rule and records traffic statistics.
+    def match_rule(name, props={})
+        pattern = /^\s*(\d+)\s+(\d+)\s+#{props[:target] || 'ACCEPT'}\s+#{props[:proto] || 'all'}\s+\-\-\s+#{props[:in] || 'any'}\s+#{props[:out] || 'any'}\s+#{props[:source] || 'anywhere'}\s+#{props[:dest] || 'anywhere'}\s*#{props[:match] || ''}/
+        match pattern do |m| record_traffic name, m[1].to_i, m[2].to_i end
+    end
+    
+end
+
+
+# FILTER:INPUT chain
+run "iptables --list INPUT --verbose --exact" do
+    match /^Chain INPUT \(policy (\w+) (\d+) packets, (\d+) bytes\)/ do |m|
+        record "firewall.filter.input.policy", m[1].to_s
+        record_traffic "firewall.filter.input.default", m[2].to_i, m[3].to_i
+    end
+    match_rule "firewall.filter.input.lan", :in => 'br0', :source => '192.168.3.0/24'
+    match_rule "firewall.filter.input.loopback", :in => 'lo'
+    match_rule "firewall.filter.input.established", :in => 'wan0', :match => 'state RELATED,ESTABLISHED'
+end
+
+
+# FILTER:OUTPUT chain
+run "iptables --list OUTPUT --verbose --exact" do
+    match /^Chain OUTPUT \(policy (\w+) (\d+) packets, (\d+) bytes\)/ do |m|
+        record "firewall.filter.output.policy", m[1].to_s
+        record_traffic "firewall.filter.output.default", m[2].to_i, m[3].to_i
+    end
+end
+
+
+# FILTER:FORWARD chain
+run "iptables --list FORWARD --verbose --exact" do
+    match /^Chain FORWARD \(policy (\w+) (\d+) packets, (\d+) bytes\)/ do |m|
+        record "firewall.filter.forward.policy", m[1].to_s
+        record_traffic "firewall.filter.forward.default", m[2].to_i, m[3].to_i
+    end
+    match_rule "firewall.filter.forward.lan", :in => 'br0', :source => '192.168.3.0/24'
+    match_rule "firewall.filter.forward.established", :match => 'state RELATED,ESTABLISHED'
+end
+
+
+# MANGLE:mark_qos_band chain
+run "iptables --table mangle --list mark_qos_band --verbose --exact" do
+    match_rule "firewall.mangle.qos.band1", :target => 'RETURN', :match => 'mark match 0x1'
+    match_rule "firewall.mangle.qos.band2", :target => 'RETURN', :match => 'mark match 0x2'
+    match_rule "firewall.mangle.qos.band3", :target => 'RETURN', :match => 'mark match 0x3'
+    match_rule "firewall.mangle.qos.band4", :target => 'RETURN', :match => 'mark match 0x4'
+    match_rule "firewall.mangle.qos.band5", :target => 'RETURN', :match => 'mark match 0x5'
 end
 
