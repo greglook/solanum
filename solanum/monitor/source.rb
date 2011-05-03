@@ -42,9 +42,8 @@ class Source
             end
             
             # parse input
-            @matchers.each do |matcher|
-                matched = lines.find {|line| matcher.match line, metrics }
-                lines.delete_at lines.index matched if matched
+            lines.each do |line|
+                @matchers.detect {|m| m.match line, metrics }
             end
         end
     end
