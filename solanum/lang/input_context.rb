@@ -31,7 +31,7 @@ class InputContext
             block = lambda do |m|
                 op = options[:as] || :to_s
                 value = m[1].send op
-                record options[:record], value, :unit => options[:unit]
+                record options[:record], value, options[:unit]
             end
         end
         

@@ -35,8 +35,8 @@ class Metrics
     end
     
     # Records a new value in a metric's history
-    def record(name, value, options={})
-        get_metric(name).record value, options[:unit]
+    def record(name, value, unit=nil)
+        get_metric(name).record value, unit
     end
 end
 
