@@ -18,6 +18,7 @@ class Metric
     
     # Records a new value
     def record(value, unit=nil)
+        return unless value
         @values[value_key unit] = value
         @time = Time.now
     end

@@ -1,8 +1,7 @@
 # This file defines the Solanum::Metrics class.
 
 
-require 'solanum/metrics/category'
-require 'solanum/metrics/record'
+require 'solanum/metrics/metric'
 
 
 module Solanum
@@ -20,7 +19,7 @@ class Metrics
     
     # Returns a Metric object for the given name, creating one if it does not
     # already exist.
-    def metric(name)
+    def get_metric(name)
         raise "Invalid metric name: #{name}" unless name =~ /^\w[\w.]+\w$/
         return @metrics[name] if @metrics[name]
         
@@ -36,8 +35,8 @@ class Metrics
     end
     
     # Records a new value in a metric's history
-    def record(name, value, args*)
-        metric(name).record value, args*
+    def record(name, value, options={})
+        get_metric(name).record value, options[:unit]
     end
 end
 

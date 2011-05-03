@@ -1,3 +1,4 @@
+#!/usr/bin/ruby
 # Loads previous data and monitoring config and collects new records.
 
 
@@ -11,9 +12,11 @@ require 'yaml'
 module Solanum
     
     # Loads a monitoring file and builds a Monitor.
-    def self.load_monitor(path)
+    def self.load_monitor(*files)
         context = Lang::RootContext.new
-        context.instance_eval File.readlines(path).join, path, 1
+        files.each do |path|
+            context.instance_eval File.readlines(path).join, path, 1
+        end
         context.monitor
     end
     
@@ -21,72 +24,44 @@ module Solanum
     def self.load_metrics(path)
         return nil unless File.exist? path
         
-        metrics = Metrics.new
-        hash = File.open(path) {|f| YAML.load f }
-        
-        queue = []
-        hash.each {|k,v| queue << [metrics.root, k, v] }
-        until queue.empty?
-            node = queue.shift
-            
-            if node[2].kind_of? Array
-                metric = Metrics::Metric.new
-                node[2].each {|r| metric.records << Metrics::Record.new(Time.at(r['time']), r['value'], r['unit']) }
-                node[0][node[1].intern] = metric
-            elsif node[2].kind_of? Hash
-                category = Metrics::Category.new
-                node[2].each {|k,v| queue << [category, k, v] }
-                node[0][node[1].intern] = category
-            else
-                raise "Unknown node type: #{node.inspect}"
-            end
-        end
-        
-        metrics
+        File.open(path) {|file| YAML.load file }
     end
     
     # Saves metrics records to the given file.
     def self.save_metrics(metrics, path)
-        hash = { }
-        queue = []
-        metrics.root.each {|k,v| queue << [hash, k, v] }
-        until queue.empty?
-            node = queue.shift
-            
-            if node[2].kind_of? Metrics::Metric
-                node[0][node[1].to_s] = node[2].records.map do |r|
-                    rh = { 'time' => r.time.to_f, 'value' => r.value }
-                    rh['unit'] = r.unit if r.unit
-                    rh
-                end
-            elsif node[2].kind_of? Metrics::Category
-                category = { }
-                node[2].each {|k,v| queue << [category, k, v] }
-                node[0][node[1].to_s] = category
-            else
-                raise "Unknown node type: #{node.inspect}"
-            end
-        end
-        
-        File.open(path, 'w') {|f| f << hash.to_yaml }
+        File.open(path, 'w') {|file| file << metrics.to_yaml }
     end
     
     # Prints out metrics and current values, sorted by key.
-    def self.print_metrics(category, ancestors=[])
-        category.keys.map{|k| k.to_s }.sort.each do |key|
-            path = ancestors.dup << key
-            child = category[key.intern]
+    def self.print_metrics(metrics)
+        metrics.metrics.keys.sort.each do |name|
+            metric = metrics.metrics[name]
             
-            if child.is_a? Solanum::Metrics::Category
-                print_metrics child, path
-            else
-                units = child.records.map{|r| r.unit }.uniq
-                units.each do |unit|
-                    record = child.records.reverse.find{|r| r.unit == unit }
-                    puts "%s: %s%s" % [path.join('.'), record.value, unit && (" " << unit.to_s) || ""]
-                end
-            end
+            values = metric.units.map {|u| "%s%s" % [metric.value(u), ( u == :'1' ) ? "" : (" " << u.to_s)] }
+            
+            puts "%s: %s (%s)" % [name, values.join(' / '), metric.time]
         end
     end
     
+end
+
+
+# if file is being executed directly, collect metrics
+if $0 == __FILE__
+    DATA_FILE = "/tmp/solanum_metrics.yml"
+    
+    # check arguments
+    if ARGV.empty?
+        puts "Usage: #{$0} <monitor script> [monitor script] ..."
+        exit 1
+    end
+    
+    monitor = Solanum.load_monitor *ARGV
+    metrics = Solanum.load_metrics(DATA_FILE) || Solanum::Metrics.new
+    
+    monitor.collect metrics
+    
+    Solanum.save_metrics metrics, DATA_FILE
+    
+    Solanum.print_metrics metrics
 end
