@@ -21,6 +21,16 @@ class RootContext
         @monitor = Solanum::Monitor.new
     end
     
+    # Allows definition of helper methods to be run inside the metrics class.
+    def metrics_helpers(&block)
+        @monitor.sources << Solanum::Monitor::Source.new(:compute, block)
+    end
+    
+    # Allows definition of helper methods to be available inside input contexts.
+    def input_helpers(&block)
+        Solanum::Lang::InputContext.class_eval &block
+    end
+    
     # Creates a :command Source and configures it with the matchers defined in
     # the given block.
     def run(command, &block)
