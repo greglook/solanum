@@ -39,7 +39,7 @@ module Solanum
             
             values = metric.units.map {|u| "%s%s" % [metric.value(u), ( u == :'1' ) ? "" : (" " << u.to_s)] }
             
-            puts "%s: %s (%s)" % [name, values.join(' / '), metric.time]
+            puts "%s: %s" % [name, values.join(' / ')]
         end
     end
     
