@@ -2,6 +2,10 @@
 # vim: ft=ruby
 
 
+LO_IF = 'lo'
+LAN_IF = 'br0'
+WAN_IF = 'ppp0'
+
 metrics_helpers do
     
     # Calculates the rate of change in of the metric value in the given unit
@@ -141,7 +145,7 @@ end
 
 ##### NETWORK STATUS #####
 
-interfaces = ['wan0', 'lan0', 'wlan0']
+interfaces = ['wan0', 'lan0', 'wlan0', 'br0', 'ppp0']
 
 # network interface utilization
 read "/proc/net/dev" do
@@ -200,9 +204,9 @@ run "iptables --list INPUT --verbose --exact" do
         record "firewall.filter.input.policy", m[1].to_s
         record_traffic "firewall.filter.input.default", m[2].to_i, m[3].to_i
     end
-    match_rule "firewall.filter.input.lan", :in => 'br0', :source => '192.168.3.0/24'
-    match_rule "firewall.filter.input.loopback", :in => 'lo'
-    match_rule "firewall.filter.input.established", :in => 'wan0', :match => 'state RELATED,ESTABLISHED'
+    match_rule "firewall.filter.input.lan", :in => LAN_IF
+    match_rule "firewall.filter.input.loopback", :in => LO_IF
+    match_rule "firewall.filter.input.established", :in => WAN_IF, :match => 'state RELATED,ESTABLISHED'
 end
 
 
@@ -221,7 +225,7 @@ run "iptables --list FORWARD --verbose --exact" do
         record "firewall.filter.forward.policy", m[1].to_s
         record_traffic "firewall.filter.forward.default", m[2].to_i, m[3].to_i
     end
-    match_rule "firewall.filter.forward.lan", :in => 'br0', :source => '192.168.3.0/24'
+    match_rule "firewall.filter.forward.lan", :in => LAN_IF
     match_rule "firewall.filter.forward.established", :match => 'state RELATED,ESTABLISHED'
 end
 
