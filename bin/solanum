@@ -1,0 +1,23 @@
+#!/usr/bin/ruby
+
+
+# Loads previous data and monitoring config and collects new records.
+
+
+require 'solanum'
+
+
+# check arguments
+if ARGV.empty?
+    puts "Usage: #{$0} <monitor script> [monitor script] ..."
+    exit 1
+end
+
+monitor = Solanum.load_monitor *ARGV
+metrics = Solanum.load_metrics(monitor.data_file) || Solanum::Metrics.new
+
+monitor.collect metrics
+
+Solanum.save_metrics metrics, monitor.data_file if monitor.data_file
+
+Solanum.print_metrics metrics

@@ -1,6 +1,0 @@
-#!/bin/sh
-
-# Loads previous data and monitoring config and collects new records.
-
-./solanum.rb monitor.sol
-
