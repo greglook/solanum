@@ -1,5 +1,4 @@
-#!/usr/bin/ruby
-# Loads previous data and monitoring config and collects new records.
+# This file defines the Solanum namespace module.
 
 
 require 'solanum/lang'
@@ -8,7 +7,9 @@ require 'solanum/monitor'
 require 'yaml'
 
 
-# Solanum namespace module.
+# Namespace module with some handy utility methods.
+#
+# Author:: Greg Look
 module Solanum
   
   # Loads a monitoring file and builds a Monitor.
@@ -23,7 +24,6 @@ module Solanum
   # Loads metrics records from the given file.
   def self.load_metrics(path)
     return nil unless path && File.exist?(path)
-    
     File.open(path) {|file| YAML.load file }
   end
   
@@ -36,9 +36,7 @@ module Solanum
   def self.print_metrics(metrics)
     metrics.metrics.keys.sort.each do |name|
       metric = metrics.metrics[name]
-      
       values = metric.units.map {|u| "%s%s" % [metric.value(u), ( u == :'1' ) ? "" : (" " << u.to_s)] }
-      
       puts "%s: %s" % [name, values.join(' / ')]
     end
   end

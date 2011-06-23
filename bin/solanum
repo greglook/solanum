@@ -1,7 +1,8 @@
 #!/usr/bin/ruby
 
-
 # Loads previous data and monitoring config and collects new records.
+#
+# Author:: Greg Look
 
 
 require 'solanum'
