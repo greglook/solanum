@@ -99,7 +99,7 @@ compute do
      %w{system.swap   free}].each do |info|
         parent = info.shift
         total = get_metric("#{parent}.total").value :kB
-        next unless total
+        next unless total && total > 0
         info.each_with_index do |name, i|
             metric = get_metric "#{parent}.#{name}"
             used = metric.value :kB
