@@ -9,44 +9,50 @@ class Monitor
 #
 # Author:: Greg Look
 class Source
-    attr_reader :type, :value
-    attr_reader :matchers
+  attr_reader :type, :value
+  attr_reader :matchers
+  
+  TYPES = [:command, :file, :compute].freeze
+  
+  # Creates a new Source
+  def initialize(type, value)
+    raise "Unknown source type #{type}" unless TYPES.include? type
+    @type = type
+    @value = value
+    @matchers = [ ]
+  end
+  
+  # Collects recordings from matchers (or directly, for :compute)
+  def collect(metrics)
+    raise "metrics must be provided" if metrics.nil?
     
-    TYPES = [:command, :file, :compute].freeze
-    
-    # Creates a new Source
-    def initialize(type, value)
-        raise "Unknown source type #{type}" unless TYPES.include? type
-        @type = type
-        @value = value
-        @matchers = [ ]
-    end
-    
-    # Collects recordings from matchers (or directly, for :compute)
-    def collect(metrics)
-        raise "metrics must be provided" if metrics.nil?
-        
-        if @type == :compute
-            # compute metrics directly
-            metrics.instance_exec &@value
+    if @type == :compute
+      # compute metrics directly
+      metrics.instance_exec &@value
+    else
+      lines = nil
+      
+      # collect input
+      if @type == :command
+        exe = @value.split(/\s/).first
+        exe = %x{which #{exe}} unless File.executable? exe
+        if File.executable? exe
+          lines = %x{#{@value}}.split("\n")
+          puts "Error executing command: #{@value}" unless $?.success?
         else
-            lines = nil
-            
-            # collect input
-            if @type == :command
-                lines = %x{#{@value}}.split("\n")
-                puts "Error executing command: #{@value}" unless $?.success?
-            elsif @type == :file
-                puts "File does not exist: #{@value}" unless File.exists? @value
-                File.open(@value) {|file| lines = file.readlines } if File.readable? @value
-            end
-            
-            # parse input
-            lines.each do |line|
-                @matchers.detect {|m| m.match line, metrics }
-            end
+          puts "Command #{exe} not found"
         end
+      elsif @type == :file
+        puts "File does not exist: #{@value}" unless File.exists? @value
+        File.open(@value) {|file| lines = file.readlines } if File.readable? @value
+      end
+      
+      # parse input
+      lines.each do |line|
+        @matchers.detect {|m| m.match line, metrics }
+      end
     end
+  end
 end
 
 end
