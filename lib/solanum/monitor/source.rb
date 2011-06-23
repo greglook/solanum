@@ -35,8 +35,8 @@ class Source
       # collect input
       if @type == :command
         exe = @value.split(/\s/).first
-        exe = %x{which #{exe}} unless File.executable? exe
-        if File.executable? exe
+        which = %x{which #{exe} 2> /dev/null} unless File.executable? exe
+        if File.executable?(which || exe)
           lines = %x{#{@value}}.split("\n")
           puts "Error executing command: #{@value}" unless $?.success?
         else
@@ -49,7 +49,7 @@ class Source
       end
       
       # parse input
-      lines.each do |line|
+      lines && lines.each do |line|
         @matchers.detect {|m| m.match line, metrics }
       end
     end
