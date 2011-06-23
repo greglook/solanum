@@ -22,7 +22,7 @@ module Solanum
   
   # Loads metrics records from the given file.
   def self.load_metrics(path)
-    return nil unless File.exist? path
+    return nil unless path && File.exist?(path)
     
     File.open(path) {|file| YAML.load file }
   end
