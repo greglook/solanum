@@ -44,6 +44,7 @@ class Source
         end
       elsif @type == :file
         puts "File does not exist: #{@value}" unless File.exists? @value
+        puts "File is not readable: #{@value}" unless File.readable? @value
         File.open(@value) {|file| lines = file.readlines } if File.readable? @value
       end
       
