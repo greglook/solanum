@@ -9,7 +9,6 @@ module Solanum
 # Author:: Greg Look
 class Monitor
     attr_reader :sources
-    attr_accessor :data_file
     
     # Creates a new Monitor
     def initialize

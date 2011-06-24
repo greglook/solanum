@@ -21,11 +21,6 @@ class RootContext
     @monitor = Solanum::Monitor.new
   end
   
-  # Sets the location of a persisted data file to use.
-  def data_file(path)
-    @monitor.data_file = path
-  end
-  
   # Allows definition of helper methods to be run inside the metrics class.
   def metrics_helpers(&block)
     @monitor.sources << Solanum::Monitor::Source.new(:compute, block)
