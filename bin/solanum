@@ -4,8 +4,7 @@
 #
 # Author:: Greg Look
 
-# hack to find libraries
-$: << File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib'))
+$: << File.expand_path("../../lib", __FILE__)
 
 require 'optparse'
 require 'solanum'
