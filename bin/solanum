@@ -1,0 +1,37 @@
+#!/usr/bin/ruby
+
+# Loads previous data and monitoring config and collects new records.
+#
+# Author:: Greg Look
+
+# hack to find libraries
+$: << File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib'))
+
+require 'optparse'
+require 'solanum'
+
+
+# parse command-line options
+options = OptionParser.new do |opts|
+  opts.banner = "Usage: #{$0} [options] <monitor script> [monitor script] ..."
+  opts.on('-f', '--file PATH', "File to use for metrics values") {|path| $data_file = path }
+  opts.on('-h', '--help', "Displays usage information") { print opts; exit }
+end
+options.parse!
+
+# check usage
+if ARGV.empty?
+  print options
+  exit 1
+end
+
+# load monitor scripts and data file
+monitor = Solanum.load_monitor *ARGV
+metrics = Solanum.load_metrics($data_file) || Solanum::Metrics.new
+
+# collect metric values
+monitor.collect metrics
+
+# output metrics
+Solanum.save_metrics metrics, $data_file if $data_file
+Solanum.print_metrics metrics
