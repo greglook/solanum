@@ -29,8 +29,8 @@ class InputContext
         
         if options[:record]
             block = lambda do |m|
-                op = options[:as] || :to_s
-                value = m[1].send op
+                value = m[1].send options[:as] if options[:as]
+                value *= options[:scale] if options[:scale]
                 record options[:record], value, options[:unit]
             end
         end
