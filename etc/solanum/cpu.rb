@@ -25,7 +25,7 @@ end
 read "/proc/stat" do
   match /^cpu(\d+) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+)/ do |m|
     core = m[1].to_i
-    
+
     # calculate cpu utilization from the cumulative time spent in
     # 'jiffies' (1/100 sec) since system boot
     %w{user nice system idle iowait irqhard irqsoft}.each_with_index do |name, i|

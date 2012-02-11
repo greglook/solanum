@@ -11,9 +11,9 @@ class Monitor
 class Source
   attr_reader :type, :value
   attr_reader :matchers
-  
+
   TYPES = [:command, :file, :compute].freeze
-  
+
   # Creates a new Source
   def initialize(type, value)
     raise "Unknown source type #{type}" unless TYPES.include? type
@@ -21,17 +21,17 @@ class Source
     @value = value
     @matchers = [ ]
   end
-  
+
   # Collects recordings from matchers (or directly, for :compute)
   def collect(metrics)
     raise "metrics must be provided" if metrics.nil?
-    
+
     if @type == :compute
       # compute metrics directly
       metrics.instance_exec &@value
     else
       lines = nil
-      
+
       # collect input
       if @type == :command
         exe = @value.split(/\s/).first
@@ -47,7 +47,7 @@ class Source
         puts "File is not readable: #{@value}" unless File.readable? @value
         File.open(@value) {|file| lines = file.readlines } if File.readable? @value
       end
-      
+
       # parse input
       lines && lines.each do |line|
         @matchers.detect {|m| m.match line, metrics }
