@@ -21,7 +21,7 @@ end
 ```
 
 Data sources can also be output from commands, and metrics can be generated
-directly (for example, to calculate percentages or rates from previously
+directly - for example, to calculate percentages or rates from previously
 recorded metrics. See the files in the `etc` directory for more examples.
 
 ## License
