@@ -23,3 +23,8 @@ end
 Data sources can also be output from commands, and metrics can be generated
 directly (for example, to calculate percentages or rates from previously
 recorded metrics. See the files in the `etc` directory for more examples.
+
+## License
+
+This is free and unencumbered software released into the public domain.
+See the UNLICENSE file for more information.
