@@ -48,20 +48,12 @@ $: << File.expand_path("../../lib", __FILE__)
 
 require 'solanum'
 
-config = Solanum::Config.new
+$sources, $services = Solanum.load($scripts)
 
-$scripts.each do |path|
-  log "Loading monitor script #{path}"
-  config.load path
-end
-
-if config.sources.empty?
-  STDERR.puts "No sources loaded from configuration scripts: #{$scripts.join(' ')}"
+if $sources.empty?
+  STDERR.puts "No sources loaded!"
   exit 1
 end
-
-$sources = config.sources
-$services = config.services
 
 
 
