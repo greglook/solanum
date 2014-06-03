@@ -66,32 +66,18 @@ $metrics = {}
 
 loop do
   metrics = Solanum.collect($sources)
-  metrics.each do |service, value|
-    prototype = $services.select{|m| m[0] === service }.map{|m| m[1] }.reduce({}, &:merge)
-    state = prototype[:state] ? prototype[:state].call(value) : :ok
-    tags = ((prototype[:tags] || []) + $options[:tags]).uniq
-    ttl = prototype[:ttl] || $options[:ttl]
+  events = Solanum.build($services, $metrics, metrics, $options)
 
-    if prototype[:diff]
-      last = $metrics[service]
-      if last && last <= value
-        value = value - last
-      else
-        value = nil
-      end
-    end
+  events.each do |event|
+    log "%-40s %5s (%s) %s" % [
+      event[:service], event[:value],
+      event[:state].nil? ? "--" : event[:state],
+      event[:tags].join(' ')
+    ]
 
-    if value
-      log "%-40s %5s (%s) %s" % [service, value, state.nil? ? "--" : state, tags.join(' ')]
-      $riemann << {
-        service: service,
-        metric: value,
-        state: state.to_s,
-        tags: tags,
-        ttl: ttl
-      }
-    end
+    $riemann << event
   end
+
   $metrics = metrics
   sleep $options[:interval]
 end
