@@ -1,0 +1,68 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+
+$options = {
+  interval: 5,
+  verbose: false,
+}
+
+# Parse command-line options.
+options = OptionParser.new do |opts|
+  opts.banner = "Usage: #{File.basename($0)} [options] <monitor config> [monitor config] ..."
+  opts.separator ""
+  opts.separator "Options:"
+  opts.on('-i', '--interval SECONDS', "Seconds between updates (default: #{$options[:interval]})") {|v| $options[:interval] = v.to_i }
+  opts.on('-v', '--verbose', "Print additional information to stdout") { $options[:verbose] = true }
+  opts.on(      '--help', "Displays usage information") { print opts; exit }
+end
+options.parse!
+
+# check usage
+if ARGV.empty?
+  print options
+  exit 1
+end
+
+$scripts = ARGV.dup
+
+def log(msg)
+  puts msg if $options[:verbose]
+end
+
+
+
+##### MONITORING CONFIGS #####
+
+$: << File.expand_path("../../lib", __FILE__)
+
+require 'solanum'
+
+$sources, $services = Solanum.load($scripts)
+
+if $sources.empty?
+  STDERR.puts "No sources loaded!"
+  exit 1
+end
+
+
+
+##### REPORT LOOP #####
+
+$metrics = {}
+
+loop do
+  metrics = Solanum.collect($sources)
+  events = Solanum.build($services, $metrics, metrics)
+
+  events.each do |event|
+    puts "%-40s %5s (%s) %s" % [
+      event[:service], event[:metric],
+      event[:state].nil? ? "--" : event[:state],
+      event[:tags].join(' ')
+    ]
+  end
+
+  $metrics = metrics
+  sleep $options[:interval]
+end
