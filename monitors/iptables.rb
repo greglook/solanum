@@ -40,22 +40,22 @@ end
 
 # FILTER:INPUT chain
 iptables "--list INPUT --verbose --exact" do
-  match_chain "filter input DROP", "INPUT"             # Dropped traffic
-  match_rule  "filter input lan0", in: 'lan0'          # Traffic to XVI from the LAN
-  match_rule  "filter input established", in: 'wan0',  # Established traffic to XVI from Internet
+  match_chain "filter input DROP", "INPUT"
+  match_rule  "filter input lan0", in: 'lan0'
+  match_rule  "filter input established", in: 'wan0',
               match: 'ctstate RELATED,ESTABLISHED'
 end
 
 # FILTER:OUTPUT chain
 iptables "--list OUTPUT --verbose --exact" do
-  match_chain "filter output", "OUTPUT"                # Traffic sent by XVI
+  match_chain "filter output", "OUTPUT"
 end
 
 # FILTER:FORWARD chain
 iptables "--list FORWARD --verbose --exact" do
   match_chain "filter forward DROP", "FORWARD"
-  match_rule  "filter forward lan0", in: 'lan0'        # Forwarded traffic from LAN to Internet
-  match_rule  "filter forward established",            # Forward established traffic
+  match_rule  "filter forward lan0", in: 'lan0'
+  match_rule  "filter forward established",
               match: 'ctstate RELATED,ESTABLISHED'
 end
 
