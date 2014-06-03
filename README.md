@@ -1,28 +1,40 @@
-# Solanum
+Solanum
+=======
 
-This is an experiment in writing a domain-specific language (DSL) for collecting
-metrics data in Ruby. The `solanum` script takes a number of configuration files
-as arguments and collects the metrics defined by those files. The results are
-printed and optionally, stored as a local YAML file.
+This library provides a domain-specific language (DSL) for collecting metrics
+data in Ruby. The `solanum` script takes a number of monitoring configuration
+scripts as arguments and periodically collects the metrics defined. The results
+are printed to the console.
+
+The `riemann-solanum` script is similar, except it reports the collected data
+to a [Riemann](http://riemann.io/) server. This requires the `riemann-client`
+gem.
 
 ## Examples
 
-Here's an example of reading some information about the current system process
-load:
+Here's an example of reading some information about the current system memory:
 
 ```ruby
-read "/proc/loadavg" do
-  match /^(\d+\.\d+) \d+\.\d+ \d+\.\d+ (\d+)\/(\d+) \d+$/ do |m|
-    record "system.process.load",  m[1].to_f
-    record "system.process.running", m[2].to_i
-    record "system.process.count",   m[3].to_i
+# Read memory usage.
+read "/proc/meminfo" do
+  match /^MemTotal:\s+(\d+) kB$/, cast: :to_i, scale: 1024, record: 'memory total bytes'
+  match /^MemFree:\s+(\d+) kB$/,  cast: :to_i, scale: 1024, record: 'memory free bytes'
+end
+
+# Calculate percentages from total space.
+compute do |metrics|
+  total = metrics['memory total bytes']
+  free = metrics['memory free bytes']
+  if total && free
+    metrics['memory free pct'] = free.to_f/total
   end
 end
+
+# Define a service prototype with a threshold-based state.
+service 'memory free pct', state: thresholds(0.00, :critical, 0.10, :warning, 0.25, :ok)
 ```
 
-Data sources can also be output from commands, and metrics can be generated
-directly - for example, to calculate percentages or rates from previously
-recorded metrics. See the files in the `etc` directory for more examples.
+See the files in the `monitors` directory for more examples.
 
 ## License
 
