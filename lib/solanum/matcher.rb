@@ -25,6 +25,7 @@ class Matcher
 
     if @pattern === line
       @fn.call $~, metrics
+      metrics
     end
   end
 
