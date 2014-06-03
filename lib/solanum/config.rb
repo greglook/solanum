@@ -5,14 +5,13 @@ module Solanum
 class Config
   attr_reader :sources, :services
 
-  def initialize
+  def initialize(path)
     @sources = []
     @services = []
-  end
 
-  # Loads a monitor script.
-  def load(path)
     instance_eval ::File.readlines(path).join, path, 1
+
+    raise "No sources loaded from monitor script: #{path}" if @sources.empty?
   end
 
 
