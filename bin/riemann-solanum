@@ -1,0 +1,105 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+
+$options = {
+  riemann_host: 'localhost',
+  riemann_port: 5555,
+  event_host: %x{hostname --fqdn}.chomp,
+  interval: 5,
+  tags: [],
+  ttl: 10,
+  verbose: false,
+}
+
+# Parse command-line options.
+options = OptionParser.new do |opts|
+  opts.banner = "Usage: #{File.basename($0)} [options] <monitor config> [monitor config] ..."
+  opts.separator ""
+  opts.separator "Options:"
+  opts.on('-h', '--host HOST', "Riemann host (default: #{$options[:riemann_host]})") {|v| $options[:riemann_host] = v }
+  opts.on('-p', '--port PORT', "Riemann port (default: #{$options[:riemann_port]})") {|v| $options[:riemann_port] = v.to_i }
+  opts.on('-e', '--event-host HOST', "Event hostname (default: #{$options[:event_host]})") {|v| $options[:event_host] = v }
+  opts.on('-i', '--interval SECONDS', "Seconds between updates (default: #{$options[:interval]})") {|v| $options[:interval] = v.to_i }
+  opts.on('-t', '--tag TAG', "Tag to add to events (may be given multiple times)") {|v| $options[:tags] << v }
+  opts.on('-l', '--ttl SECONDS', "Default TTL for events (default: #{$options[:ttl]})") {|v| $options[:ttl] = v.to_i }
+  opts.on('-v', '--verbose', "Print additional information to stdout") { $options[:verbose] = true }
+  opts.on(      '--help', "Displays usage information") { print opts; exit }
+end
+options.parse!
+
+# check usage
+if ARGV.empty?
+  print options
+  exit 1
+end
+
+$scripts = ARGV.dup
+
+def log(msg)
+  puts msg if $options[:verbose]
+end
+
+
+
+##### MONITORING CONFIGS #####
+
+$: << File.expand_path("../../lib", __FILE__)
+
+require 'solanum'
+
+config = Solanum::Config.new
+
+$scripts.each do |path|
+  log "Loading monitor script #{path}"
+  config.load path
+end
+
+if config.sources.empty?
+  STDERR.puts "No sources loaded from configuration scripts: #{$scripts.join(' ')}"
+  exit 1
+end
+
+$sources = config.sources
+$services = config.services
+
+
+
+##### REPORT LOOP #####
+
+require 'riemann/client'
+
+$riemann = Riemann::Client.new host: $options[:riemann_host], port: $options[:riemann_port]
+$metrics = {}
+
+loop do
+  metrics = Solanum.collect($sources)
+  metrics.each do |service, value|
+    prototype = $services.select{|m| m[0] === service }.map{|m| m[1] }.reduce({}, &:merge)
+    state = prototype[:state] ? prototype[:state].call(value) : :ok
+    tags = ((prototype[:tags] || []) + $options[:tags]).uniq
+    ttl = prototype[:ttl] || $options[:ttl]
+
+    if prototype[:diff]
+      last = $metrics[service]
+      if last && last <= value
+        value = value - last
+      else
+        value = nil
+      end
+    end
+
+    if value
+      log "%-40s %5s (%s) %s" % [service, value, state.nil? ? "--" : state, tags.join(' ')]
+      $riemann << {
+        service: service,
+        metric: value,
+        state: state.to_s,
+        tags: tags,
+        ttl: ttl
+      }
+    end
+  end
+  $metrics = metrics
+  sleep $options[:interval]
+end
