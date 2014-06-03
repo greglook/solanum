@@ -1,6 +1,8 @@
+# Solanum monitoring configuration for hardware sensors.
+#
+# Author:: Greg Look
 # encoding: utf-8
 
-# Hardware sensor data.
 run "sensors" do
   match /^Core 0:\s+\+(\d+\.\d+)°C/, record: "sensor coretemp", cast: :to_f
   match /^temp1:\s+\+(\d+\.\d+)°C/,  record: "sensor temp1",    cast: :to_f
