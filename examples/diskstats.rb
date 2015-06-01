@@ -1,6 +1,4 @@
 # Solanum monitoring configuration for disk utilization metrics.
-#
-# Author:: Greg Look
 
 # detect disk devices to monitor
 disks = Dir['/dev/*'].grep(/^\/dev\/[hs]d[a-z]/){|dev| dev[5..7] }.uniq.sort

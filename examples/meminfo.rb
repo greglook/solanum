@@ -1,6 +1,4 @@
 # Solanum monitoring configuration for memory utilization metrics.
-#
-# Author:: Greg Look
 
 read "/proc/meminfo" do
   match /^MemTotal:\s+(\d+) kB$/,     cast: :to_i, scale: 1024, record: "memory total bytes"

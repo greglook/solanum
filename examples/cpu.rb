@@ -1,6 +1,4 @@
 # Solanum monitoring configuration for cpu utilization metrics.
-#
-# Author:: Greg Look
 
 read "/proc/cpuinfo" do
   match /^cpu MHz\s*:\s+(\d+\.\d+)/, cast: :to_f, record: 'cpu frequency'
