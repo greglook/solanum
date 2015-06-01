@@ -1,6 +1,5 @@
 # Solanum monitoring configuration for iptables rules.
-#
-# Author:: Greg Look
+
 
 ##### IPTABLES SOURCE #####
 

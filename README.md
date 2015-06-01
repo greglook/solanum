@@ -1,7 +1,7 @@
 Solanum
 =======
 
-This library provides a domain-specific language (DSL) for collecting metrics
+This gem provides a domain-specific language (DSL) for collecting metrics
 data in Ruby. The `solanum` script takes a number of monitoring configuration
 scripts as arguments and periodically collects the metrics defined. The results
 are printed to the console.
@@ -34,7 +34,7 @@ end
 service 'memory free pct', state: thresholds(0.00, :critical, 0.10, :warning, 0.25, :ok)
 ```
 
-See the files in the `monitors` directory for more examples.
+See the files in the `examples` directory for more monitor configuration samples.
 
 ## License
 

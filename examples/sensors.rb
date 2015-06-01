@@ -1,6 +1,4 @@
 # Solanum monitoring configuration for hardware sensors.
-#
-# Author:: Greg Look
 # encoding: utf-8
 
 run "sensors" do

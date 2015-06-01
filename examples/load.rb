@@ -1,6 +1,4 @@
 # Solanum monitoring configuration for cpu utilization metrics.
-#
-# Author:: Greg Look
 
 read "/proc/uptime" do
   match /^(\d+\.\d+)/, cast: :to_f, record: 'uptime'
