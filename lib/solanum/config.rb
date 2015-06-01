@@ -1,8 +1,6 @@
 require 'solanum/source'
 
-
-module Solanum
-class Config
+class Solanum::Config
   attr_reader :sources, :services
 
   def initialize(path)
@@ -96,5 +94,4 @@ class Config
     end
   end
 
-end
 end

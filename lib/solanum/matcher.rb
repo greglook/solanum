@@ -1,10 +1,8 @@
-module Solanum
-
 # This class maps a line-matching pattern to a set of calculations on the
 # matched data.
 #
 # Author:: Greg Look
-class Matcher
+class Solanum::Matcher
   attr_reader :pattern, :fn
 
   # Creates a new Matcher
@@ -29,5 +27,4 @@ class Matcher
     end
   end
 
-end
 end

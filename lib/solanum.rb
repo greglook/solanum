@@ -1,12 +1,12 @@
-require 'solanum/config'
-require 'solanum/source'
-
-
 # Class which wraps up an active Solanum monitoring system into an object.
 #
 # Author:: Greg Look
 class Solanum
   attr_reader :sources, :services, :metrics
+
+  require 'solanum/config'
+  require 'solanum/source'
+
 
   # Loads the given monitoring scripts and initializes the sources and service
   # definitions.

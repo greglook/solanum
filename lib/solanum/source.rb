@@ -1,12 +1,10 @@
 require 'solanum/matcher'
 
-module Solanum
-
 # This class represents a source of data, whether read from command output,
 # a file on the system, or just calculated from other values.
 #
 # Author:: Greg Look
-class Source
+class Solanum::Source
   attr_reader :config, :matchers
 
   # Creates a new Source
@@ -66,7 +64,7 @@ class Source
 
   public
 
-  class Command < Source
+  class Command < Solanum::Source
     def collect(metrics)
       # Locate absolute command path.
       command, args = @config.split(/\s/, 2)
@@ -90,7 +88,7 @@ class Source
     end
   end
 
-  class File < Source
+  class File < Solanum::Source
     def collect(metrics)
       raise "File does not exist: #{@config}" unless ::File.exists? @config
       raise "File is not readable: #{@config}" unless ::File.readable? @config
@@ -104,12 +102,11 @@ class Source
     end
   end
 
-  class Compute < Source
+  class Compute < Solanum::Source
     def collect(metrics)
       # Compute metrics directly.
       @config.call(metrics)
     end
   end
 
-end
 end
