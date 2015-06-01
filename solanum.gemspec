@@ -10,8 +10,9 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'riemann-client', '>= 0.2.2'
 
-  s.files = Dir['lib/**/*', 'bin/*', 'UNLICENSE', 'README.md'].to_a
-  s.executables |= Dir.entries('bin/')
+  s.files = Dir['lib/**/*', 'bin/*', 'README.md'].to_a
+  s.bindir = 'bin'
+  s.executables << 'solanum'
   s.require_path = 'lib'
 
   s.required_ruby_version = '>= 1.9.1'
