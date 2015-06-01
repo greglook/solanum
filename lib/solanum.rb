@@ -2,36 +2,39 @@ require 'solanum/config'
 require 'solanum/source'
 
 
-# Namespace module with some handy utility methods.
+# Class which wraps up an active Solanum monitoring system into an object.
 #
 # Author:: Greg Look
-module Solanum
+class Solanum
+  attr_reader :sources, :services, :metrics
 
-  # Loads monitor scripts and returns an array of the loaded sources and
-  # services.
-  def self.load(scripts)
-    sources = []
-    services = []
+  # Loads the given monitoring scripts and initializes the sources and service
+  # definitions.
+  def initialize(scripts)
+    @sources = []
+    @services = []
+    @metrics = {}
 
     scripts.each do |path|
       begin
-        #log "Loading monitor script #{path}"
         config = Solanum::Config.new(path)
-        sources.concat(config.sources)
-        services.concat(config.services)
+        @sources.concat(config.sources)
+        @services.concat(config.services)
       rescue => e
         STDERR.puts "Error loading monitor script #{path}: #{e}"
       end
     end
 
-    return sources, services
+    @sources.freeze
+    @services.freeze
   end
 
 
-  # Collects metrics from the given sources, in order. Returns a merged map of
-  # metric data.
-  def self.collect(sources)
-    sources.reduce({}) do |metrics, source|
+  # Collects metrics from the given sources, in order. Updates the internal
+  # merged map of metric data.
+  def collect!
+    @old_metrics = @metrics
+    @metrics = @sources.reduce({}) do |metrics, source|
       new_metrics = nil
       begin
         new_metrics = source.collect(metrics)
@@ -43,19 +46,19 @@ module Solanum
   end
 
 
-  # Build full events from a set of service prototypes, old metrics, and new
+  # Builds full events from a set of service prototypes, old metrics, and new
   # metrics.
-  def self.build(services, old_metrics, new_metrics, defaults={})
-    new_metrics.keys.sort.map do |service|
-      value = new_metrics[service]
-      prototype = services.select{|m| m[0] === service }.map{|m| m[1] }.reduce({}, &:merge)
+  def build_events(defaults={})
+    @metrics.keys.sort.map do |service|
+      value = @metrics[service]
+      prototype = @services.select{|m| m[0] === service }.map{|m| m[1] }.reduce({}, &:merge)
+
       state = prototype[:state] ? prototype[:state].call(value) : :ok
-      attrs = defaults[:attrs] || {}
       tags = ((prototype[:tags] || []) + (defaults[:tags] || [])).uniq
       ttl = prototype[:ttl] || defaults[:ttl]
 
       if prototype[:diff]
-        last = old_metrics[service]
+        last = @old_metrics[service]
         if last && last <= value
           value = value - last
         else
@@ -64,7 +67,7 @@ module Solanum
       end
 
       if value
-        attrs.merge({
+        defaults.merge({
           service: service,
           metric: value,
           state: state.to_s,
