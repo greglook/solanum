@@ -7,6 +7,7 @@ $options = {
   riemann_port: 5555,
   event_host: %x{hostname --fqdn}.chomp,
   interval: 5,
+  attrs: {},
   tags: [],
   ttl: 10,
   verbose: false,
@@ -21,6 +22,7 @@ options = OptionParser.new do |opts|
   opts.on('-p', '--port PORT', "Riemann port (default: #{$options[:riemann_port]})") {|v| $options[:riemann_port] = v.to_i }
   opts.on('-e', '--event-host HOST', "Event hostname (default: #{$options[:event_host]})") {|v| $options[:event_host] = v }
   opts.on('-i', '--interval SECONDS', "Seconds between updates (default: #{$options[:interval]})") {|v| $options[:interval] = v.to_i }
+  opts.on('-a', '--attribute KEY=VAL', "Attribute to add to the event (may be given multiple times)") {|attr| k,v = attr.split(/=/); if k and v then $options[:attrs][k] = v end }
   opts.on('-t', '--tag TAG', "Tag to add to events (may be given multiple times)") {|v| $options[:tags] << v }
   opts.on('-l', '--ttl SECONDS', "Default TTL for events (default: #{$options[:ttl]})") {|v| $options[:ttl] = v.to_i }
   opts.on('-v', '--verbose', "Print additional information to stdout") { $options[:verbose] = true }

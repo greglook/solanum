@@ -50,6 +50,7 @@ module Solanum
       value = new_metrics[service]
       prototype = services.select{|m| m[0] === service }.map{|m| m[1] }.reduce({}, &:merge)
       state = prototype[:state] ? prototype[:state].call(value) : :ok
+      attrs = defaults[:attrs] || {}
       tags = ((prototype[:tags] || []) + (defaults[:tags] || [])).uniq
       ttl = prototype[:ttl] || defaults[:ttl]
 
@@ -63,13 +64,13 @@ module Solanum
       end
 
       if value
-        {
+        attrs.merge({
           service: service,
           metric: value,
           state: state.to_s,
           tags: tags,
           ttl: ttl
-        }
+        })
       end
     end.compact
   end
