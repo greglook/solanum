@@ -1,30 +1,50 @@
-# This class maps a line-matching pattern to a set of calculations on the
-# matched data.
+# A matcher takes in a collection of lines and updates the given metrics
+# hash by computing a function over the input.
 #
 # Author:: Greg Look
 class Solanum::Matcher
-  attr_reader :pattern, :fn
+  attr_reader :fn
 
   # Creates a new Matcher
-  def initialize(pattern, &block)
-    raise "pattern must be provided" if pattern.nil?
-    raise "block must be provided" if block.nil?
-
-    @pattern = pattern
-    @fn = block
+  def initialize(fn)
+    raise "function must be provided" if fn.nil?
+    @fn = fn
   end
 
-  # Attempts to match the given line, calling it's recorder block with the
-  # given match and metrics if matched. Returns a (potentially) updated
-  # metrics map on match, or nil otherwise.
-  def match(metrics, line)
-    raise "line must be provided" if line.nil?
-    raise "metrics must be provided" if metrics.nil?
+  # Attempts to match the given input, updating the metrics hash with
+  # parsed data.
+  def call(metrics, lines)
+    metrics
+  end
 
-    if @pattern === line
-      @fn.call $~, metrics
-      metrics
+
+  ### MATCHER TYPES ###
+
+  public
+
+  class LinePattern < Solanum::Matcher
+    def initialize(fn, pattern)
+      super fn
+      raise "pattern must be provided" if pattern.nil?
+      @pattern = pattern
+    end
+
+    def call(metrics, lines)
+      raise "lines must be provided" if lines.nil?
+      raise "metrics must be provided" if metrics.nil?
+
+      lines.reduce(metrics) do |m, line|
+        begin
+          if @pattern === line
+            @fn.call(m, $~)
+          else
+            m
+          end
+        rescue => e
+          STDERR.puts("Error calculating metrics from line match: #{e.inspect}")
+          m
+        end
+      end
     end
   end
-
 end

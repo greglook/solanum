@@ -22,16 +22,12 @@ class Solanum::Source
   private
 
   def process(lines, metrics)
-    return metrics if lines.nil?
-    lines.reduce(metrics) do |metrics, line|
-      @matchers.each do |matcher|
-        new_metrics = matcher.match(metrics, line)
-        if new_metrics
-          metrics = new_metrics
-          break
-        end
-      end
+    if lines.nil? || lines.empty?
       metrics
+    else
+      @matchers.reduce(metrics) do |m, matcher|
+        matcher.call(m, lines)
+      end
     end
   end
 
@@ -46,8 +42,8 @@ class Solanum::Source
     raise "Only one of :record or a block should be provided" if commands > 1
 
     if options[:record]
-      block = lambda do |m, metrics|
-        value = m[1]
+      block = lambda do |metrics, matches|
+        value = matches[1]
         value = value.send(options[:cast]) if options[:cast]
         value *= options[:scale] if options[:scale]
 
@@ -56,7 +52,7 @@ class Solanum::Source
       end
     end
 
-    @matchers << Solanum::Matcher.new(pattern, &block)
+    @matchers << Solanum::Matcher::LinePattern.new(block, pattern)
   end
 
 
@@ -108,5 +104,4 @@ class Solanum::Source
       @config.call(metrics)
     end
   end
-
 end
