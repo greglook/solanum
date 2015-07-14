@@ -5,9 +5,11 @@ read "/proc/uptime" do
 end
 
 read "/proc/loadavg" do
-  match /^(\d+\.\d+) \d+\.\d+ \d+\.\d+ (\d+)\/(\d+) \d+$/ do |m, metrics|
-    metrics['process load']    = m[1].to_f
-    metrics['process running'] = m[2].to_i
-    metrics['process count']   = m[3].to_i
+  match /^(\d+\.\d+) \d+\.\d+ \d+\.\d+ (\d+)\/(\d+) \d+$/ do |matches|
+    {
+      'process load'    => matches[1].to_f,
+      'process running' => matches[2].to_i,
+      'process count'   => matches[3].to_i
+    }
   end
 end

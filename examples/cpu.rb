@@ -5,14 +5,17 @@ read "/proc/cpuinfo" do
 end
 
 read "/proc/stat" do
-  match /^cpu(\d+) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+)/ do |m, metrics|
-    core = m[1].to_i
+  match /^cpu(\d+) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+)/ do |matches|
+    metrics = {}
+    core = matches[1].to_i
 
     # calculate cpu utilization from the cumulative time spent in
     # 'jiffies' (1/100 sec) since system boot
     %w{user nice system idle iowait irqhard irqsoft}.each_with_index do |name, i|
-      metrics["cpu core#{core} #{name} jiffies"] = m[i+2].to_i
+      metrics["cpu core#{core} #{name} jiffies"] = matches[i+2].to_i
     end
+
+    metrics
   end
 end
 

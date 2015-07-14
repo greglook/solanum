@@ -16,12 +16,16 @@ puts "Detected disk devices: #{disks.join}" unless disks.empty?
 # disk utilization
 read "/proc/diskstats" do
   disks.each do |dev|
-    match /^\s*\d+\s+\d+\s+#{dev}\s+\d+\s+\d+\s+(\d+)\s+\d+\s+\d+\s+\d+\s+(\d+)\s+\d+\s+\d+\s+\d+\s+\d+$/ do |m, metrics|
-      # calculate io utilization from the cumulative 512B sector count
-      # since system boot
+    match /^\s*\d+\s+\d+\s+#{dev}\s+\d+\s+\d+\s+(\d+)\s+\d+\s+\d+\s+\d+\s+(\d+)\s+\d+\s+\d+\s+\d+\s+\d+$/ do |matches|
+      metrics = {}
+
+      # Calculate IO utilization from the cumulative 512B sector count since
+      # system boot.
       %w{read write}.each_with_index do |name, i|
-        metrics["disk #{dev} io #{name} bytes"] = 512*m[i+1].to_i
+        metrics["disk #{dev} io #{name} bytes"] = 512*matches[i+1].to_i
       end
+
+      metrics
     end
   end
 end unless disks.empty?
