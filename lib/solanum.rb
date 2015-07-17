@@ -35,13 +35,13 @@ class Solanum
   def collect!
     @old_metrics = @metrics
     @metrics = @sources.reduce({}) do |metrics, source|
-      new_metrics = nil
       begin
-        new_metrics = source.collect(metrics)
+        new_metrics = source.collect(metrics) || {}
+        metrics.merge(new_metrics)
       rescue => e
         STDERR.puts "Error collecting metrics from #{source}: #{e}"
+        metrics
       end
-      new_metrics || metrics
     end
   end
 

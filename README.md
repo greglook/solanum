@@ -4,11 +4,22 @@ Solanum
 This gem provides a domain-specific language (DSL) for collecting metrics
 data in Ruby. The `solanum` script takes a number of monitoring configuration
 scripts as arguments and periodically collects the metrics defined. The results
-are printed to the console.
+can be printed to the console or sent to a [Riemann](http://riemann.io/) server.
+This requires the `riemann-client` gem to work.
 
-The `riemann-solanum` script is similar, except it reports the collected data
-to a [Riemann](http://riemann.io/) server. This requires the `riemann-client`
-gem.
+## Structure
+
+Solanum scripts define _sources_, which provide some string input when they are
+read. This input is processed by a set of _matchers_ for each source, which can
+generate named measurements from that data. A simple example would be a file
+source, which is read and matched line-by-line against a set of regular
+expressions.
+
+The emitted measurements can undergo a bit more processing before being
+reported. For example, some metrics are monotonically-increasing counters, and
+what we actually want is the _difference_ between each reading. For others, we
+may want to apply threshold-based states to the events. These are set by
+_service prototypes_, which are also defined in the scripts.
 
 ## Examples
 

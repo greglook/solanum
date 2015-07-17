@@ -9,24 +9,25 @@ class Solanum::Source::IPTables < Solanum::Source::Command
   end
 
   # Records packet and byte metrics for a given serivce name.
-  def record_traffic(metrics, name, packets, bytes)
-    metrics["#{name} packets"] = packets.to_i
-    metrics["#{name} bytes"] = bytes.to_i
-    metrics
+  def traffic_metrics(name, packets, bytes)
+    {
+      "#{name} packets" => packets.to_i,
+      "#{name} bytes"   => bytes.to_i
+    }
   end
 
   # Matches an iptables chain header.
   def match_chain(name, chain)
-    match /^Chain #{chain.upcase} \(policy \w+ (\d+) packets, (\d+) bytes\)/ do |m, metrics|
-      record_traffic metrics, "iptables #{name}", m[1], m[2]
+    match /^Chain #{chain.upcase} \(policy \w+ (\d+) packets, (\d+) bytes\)/ do |matches|
+      traffic_metrics "iptables #{name}", matches[1], matches[2]
     end
   end
 
   # Matches an iptables rule and records traffic statistics.
   def match_rule(name, opts={})
     pattern = /^\s*(\d+)\s+(\d+)\s+#{opts[:target] || 'ACCEPT'}\s+#{opts[:proto] || 'all'}\s+\-\-\s+#{opts[:in] || 'any'}\s+#{opts[:out] || 'any'}\s+#{opts[:source] || 'anywhere'}\s+#{opts[:dest] || 'anywhere'}\s*#{opts[:match] || ''}/
-    match pattern do |m, metrics|
-      record_traffic metrics, "iptables #{name}", m[1], m[2]
+    match pattern do |matches|
+      traffic_metrics "iptables #{name}", matches[1], matches[2]
     end
   end
 end

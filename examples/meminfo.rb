@@ -12,17 +12,19 @@ read "/proc/meminfo" do
 end
 
 # Calculate percentages from total space.
-compute do |metrics|
+compute do |current|
+  metrics = {}
+
   percentages = {
     "memory" => %w{free available buffers cached active},
     "swap"   => %w{free}
   }
 
   percentages.each do |sys, stats|
-    total = metrics["#{sys} total bytes"]
+    total = current["#{sys} total bytes"]
     if total && total > 0
       stats.each do |stat|
-        bytes = metrics["#{sys} #{stat} bytes"]
+        bytes = current["#{sys} #{stat} bytes"]
         if bytes
           pct = bytes.to_f/total
           metrics["#{sys} #{stat} pct"] = pct
