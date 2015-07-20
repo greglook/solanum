@@ -61,6 +61,12 @@ class Solanum::Source
     @matchers << Solanum::Matcher::LinePattern.new(block, pattern)
   end
 
+  # Declares a matcher for JSON input.
+  def json(&block)
+    @matchers << Solanum::Matcher::JSONReader.new(block)
+  end
+
+
 
   ### SOURCE TYPES ###
 

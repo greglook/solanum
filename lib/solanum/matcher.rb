@@ -1,3 +1,5 @@
+require 'json'
+
 # A matcher takes in an input string and returns a hash of measurement names to
 # numeric values.
 #
@@ -48,6 +50,21 @@ class Solanum::Matcher
       end
 
       metrics
+    end
+  end
+
+
+  # JsonReader matches a JSON-formatted input string and passes the parsed
+  # object to the block body.
+  class JSONReader < Solanum::Matcher
+    def call(input)
+      begin
+        json = JSON.parse(input)
+        @fn.call(json)
+      rescue => e
+        STDERR.puts("Error matching JSON input: #{e.inspect}")
+        {}
+      end
     end
   end
 end
