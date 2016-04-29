@@ -1,97 +1,56 @@
-require 'solanum/source'
+require 'yaml'
 
-class Solanum::Config
-  attr_reader :sources, :services
+class Solanum
+module Config
 
-  def initialize(path)
-    @sources = []
-    @services = []
-
-    instance_eval ::File.readlines(path).join, path, 1
-
-    raise "No sources loaded from monitor script: #{path}" if @sources.empty?
+  # Helper method to clear the type cache.
+  def self.clear_type_cache!
+    @@type_classes = {}
   end
 
 
-  private
+  # Resolve a type based on a library path.
+  def self.resolve_type(namespace, type)
+    @@type_classes ||= {}
 
-  # Registers a new source object. If a block is given, it is used to configure
-  # the source with instance_exec.
-  def register_source(source, config=nil)
-    source.instance_exec &config if config
-    @sources << source
-    source
-  end
+    type_key = "#{namespace}:#{type}"
+    return @@type_classes[type_key] if @@type_classes.include?(type_key)
 
+    lib_path = type.include?('/') ? type : "solanum/#{namespace}/#{type}"
+    cls_path = lib_path.split('/').map{|w| w.capitalize }
 
-  # Registers a source which runs a command and matches against output lines.
-  def run(command, &config)
-    register_source Solanum::Source::Command.new(command), config
-  end
-
-
-  # Registers a source which matches against the lines in a file.
-  def read(path, &config)
-    register_source Solanum::Source::File.new(path), config
-  end
-
-
-  # Registers a source which computes metrics directly.
-  def compute(&block)
-    register_source Solanum::Source::Compute.new(block)
-  end
-
-
-  # Registers a pair of [matcher, prototype] where matcher is generally a string
-  # or regex to match a service name, and prototype is a map of :ttl, :state,
-  # :tags, etc.
-  def service(service, prototype={})
-    @services << [service, prototype]
-  end
-
-
-  ##### HELPER METHODS #####
-
-  # Creates a state function based on thresholds. If the first argument is a
-  # symbol, it is taken as the default service state. Otherwise, arguments should
-  # be alternating numeric thresholds and state values to assign if the metric
-  # value exceeds the threshold.
-  #
-  # For example, for an 'availability' metric you often want to warn on low
-  # values. To assign a 'critical' state to values between 0% and 10%,
-  # 'warning' between 10% and 25%, and 'ok' above, use the following:
-  #
-  #     thresholds(0.00, :critical, 0.10, :warning, 0.25, :ok)
-  #
-  # For 'usage' metrics it's the inverse, giving low values ok states and
-  # warning about high values:
-  #
-  #     thresholds(:ok, 55, :warning, 65, :critical)
-  #
-  def thresholds(*args)
-    default_state = nil
-    default_state = args.shift unless args.first.kind_of? Numeric
-
-    # Check arguments.
-    raise "Thresholds must be paired with state values" unless args.count.even?
-    args.each_slice(2) do |threshold|
-      limit, state = *threshold
-      raise "Limits must be numeric: #{limit}" unless limit.kind_of? Numeric
-      raise "State values must be strings or symbols: #{state}" unless state.instance_of?(String) || state.instance_of?(Symbol)
-    end
-
-    # State block.
-    lambda do |v|
-      state = default_state
-      args.each_slice(2) do |threshold|
-        if threshold[0] < v
-          state = threshold[1]
-        else
-          break
-        end
+    begin
+      require lib_path
+      cls = cls_path.inject(Object) do |mod, class_name|
+        mod.const_get(class_name) if mod
       end
-      state
+      STDERR.puts "Unable to resolve class #{cls_path.join('::')}" unless cls
+      @@type_classes[type_key] = cls
+    rescue LoadError => e
+      STDERR.puts "Unable to load code for #{type_key} type: #{e}"
+      @@type_classes[type_key] = nil
+    end
+
+    @@type_classes[type_key]
+  end
+
+
+  # Resolves a type config string and constructs a new instance of it. Memoizes
+  # the results of loading the class in the `@@type_classes` field.
+  def self.construct_type(namespace, type, args)
+    cls = resolve_type(namespace, type)
+    if cls.nil?
+      STDERR.puts "Skipping construction of failed #{namespace} type #{type}"
+      nil
+    else
+      begin
+        cls.new(args)
+      rescue => e
+        STDERR.puts "Error constructing #{namespace} type #{type}: #{args.inspect} #{e}"
+        nil
+      end
     end
   end
 
+end
 end

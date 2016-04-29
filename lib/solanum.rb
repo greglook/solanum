@@ -1,81 +1,37 @@
+require 'solanum/config'
+
+
 # Class which wraps up an active Solanum monitoring system into an object.
-#
-# Author:: Greg Look
 class Solanum
-  attr_reader :sources, :services, :metrics
+  attr_reader :sources, :default_attrs, :outputs
 
-  require 'solanum/config'
-  require 'solanum/source'
+  # Loads the given configuration file and initializes sources.
+  def initialize(config_path)
+    config = File.open(config_path) {|f| YAML.load(f) }
 
+    # Load default event attributes.
+    @default_attrs = config['event-attributes'] || {}
 
-  # Loads the given monitoring scripts and initializes the sources and service
-  # definitions.
-  def initialize(scripts)
-    @sources = []
-    @services = []
-    @metrics = {}
+    # Load output configuration, defaulting to a print output.
+    output_configs = config['outputs'] || []
+    output_configs << {'type' => 'print'} if output_configs.empty?
 
-    scripts.each do |path|
-      begin
-        config = Solanum::Config.new(path)
-        @sources.concat(config.sources)
-        @services.concat(config.services)
-      rescue => e
-        STDERR.puts "Error loading monitor script #{path}: #{e}"
-      end
+    # Construct outputs from config.
+    @outputs = output_configs.map do |conf|
+      Config.construct_type('output', conf['type'], conf)
     end
+    @outputs.reject!(&:nil?)
+    @outputs.freeze
 
+    # Load default source arguments and configuration.
+    source_defaults = config['source-defaults'] || {}
+    source_configs = config['sources'] || []
+
+    # Construct sources from config.
+    @sources = source_configs.map do |conf|
+      Config.construct_type('source', conf['type'], source_defaults.dup.merge(conf))
+    end
+    @sources.reject!(&:nil?)
     @sources.freeze
-    @services.freeze
   end
-
-
-  # Collects metrics from the given sources, in order. Updates the internal
-  # merged map of metric data.
-  def collect!
-    @old_metrics = @metrics
-    @metrics = @sources.reduce({}) do |metrics, source|
-      begin
-        new_metrics = source.collect(metrics) || {}
-        metrics.merge(new_metrics)
-      rescue => e
-        STDERR.puts "Error collecting metrics from #{source}: #{e}"
-        metrics
-      end
-    end
-  end
-
-
-  # Builds full events from a set of service prototypes, old metrics, and new
-  # metrics.
-  def build_events(defaults={})
-    @metrics.keys.sort.map do |service|
-      value = @metrics[service]
-      prototype = @services.select{|m| m[0] === service }.map{|m| m[1] }.reduce({}, &:merge)
-
-      state = prototype[:state] ? prototype[:state].call(value) : :ok
-      tags = ((prototype[:tags] || []) + (defaults[:tags] || [])).uniq
-      ttl = prototype[:ttl] || defaults[:ttl]
-
-      if prototype[:diff]
-        last = @old_metrics[service]
-        if last && last <= value
-          value = value - last
-        else
-          value = nil
-        end
-      end
-
-      if value
-        defaults.merge({
-          service: service,
-          metric: value,
-          state: state.to_s,
-          tags: tags,
-          ttl: ttl
-        })
-      end
-    end.compact
-  end
-
 end

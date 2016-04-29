@@ -1,8 +1,10 @@
 ---
-riemann:
-  protocol: tls
-  server: riemann.example.com
-  port: 5554
+outputs:
+  - type: print
+  - type: riemann
+    protocol: tls
+    server: riemann.example.com
+    port: 5554
 
 event-attributes:
   ttl: 60
