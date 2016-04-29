@@ -1,0 +1,28 @@
+---
+riemann:
+  protocol: tls
+  server: riemann.example.com
+  port: 5554
+
+event-attributes:
+  ttl: 60
+
+source-defaults:
+  period: 10
+
+sources:
+  - type: cpu
+    per_core: true
+  - type: cpu_freq
+    period: 30
+  - type: load
+  - type: memory
+  - type: diskstats
+    devices:
+      - sda
+  - type: sensors
+    sensors:
+      coretemp: "Core 0"
+      temp1: temp1
+      temp2: temp2
+      temp3: temp3
