@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'solanum'
-  s.version = '0.2.0'
+  s.version = '0.8.0'
   s.author = 'Greg Look'
   s.email = 'greg@greg-look.net'
   s.homepage = 'https://github.com/greglook/solanum'
