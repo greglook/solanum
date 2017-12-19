@@ -1,11 +1,11 @@
 class Solanum
 class Source
-  attr_accessor :period
-  attr_reader :run_at
+  attr_reader :period, :attributes, :tags
 
   def initialize(opts)
-    @period = opts[:period].to_i || 10
-    @run_at = Time.now + (rand * @period)
+    @period = (opts[:period] || 10).to_i
+    @attributes = opts[:attributes]
+    @tags = opts[:tags]
   end
 
   def collect!
