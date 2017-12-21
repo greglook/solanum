@@ -9,16 +9,26 @@ class Solanum
 
   # Merge two event attribute maps together, concatenating tags.
   def self.merge_attrs(a, b)
+    stringify = lambda do |x|
+      o = {}
+      x.keys.each do |k|
+        o[k.to_s] = x[k]
+      end
+      o
+    end
+
     if a.nil?
-      b
+      stringify[b]
     elsif b.nil?
-      a
+      stringify[a]
     else
-      tags = a[:tags] ? a[:tags].dup : []
-      tags.concat(b[:tags]) if b[:tags]
+      a = stringify[a]
+      b = stringify[b]
+      tags = a['tags'] ? a['tags'].dup : []
+      tags.concat(b['tags']) if b['tags']
       tags.uniq!
       x = a.dup.merge(b)
-      x[:tags] = tags unless tags.empty?
+      x['tags'] = tags unless tags.empty?
       x
     end
   end

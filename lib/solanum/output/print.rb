@@ -7,8 +7,8 @@ class Print
   def write_events(events)
     events.each do |event|
       puts "%-40s %5s (%s) %s" % [
-        event[:service], event[:metric],
-        event[:state].nil? ? "--" : event[:state],
+        event['service'], event['metric'],
+        event['state'].nil? ? "--" : event['state'],
         event.inspect
       ]
     end
