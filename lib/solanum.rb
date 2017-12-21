@@ -94,7 +94,6 @@ class Solanum
 
   # Runs the collection loop.
   def run!
-    puts self.inspect
     loop do
       # Determine when next scheduled source should run, and sleep if needed.
       duration = @schedule.next_wait || 1

@@ -15,20 +15,6 @@ class Solanum::Source::Cpu < Solanum::Source
   end
 
 
-  # Calculate the state of a metric.
-  def event_state(metric)
-    crit_at = @thresholds['critical']
-    warn_at = @thresholds['critical']
-    if crit_at && crit_at <= usage
-      'critical'
-    elsif warn_at && warn_at <= usage
-      'warning'
-    else
-      'ok'
-    end
-  end
-
-
   # Calculate cpu utilization from the cumulative time spent in
   # 'jiffies' (1/100 sec) since system boot.
   def parse_info(line)
