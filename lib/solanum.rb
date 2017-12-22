@@ -110,12 +110,16 @@ class Solanum
 
       # Start thread to collect and report events.
       Thread.new do
-        events = source.collect!
-        attrs = Solanum.merge_attrs(@defaults, source.attributes)
-        events = events.map do |event|
-          Solanum.merge_attrs(attrs, event)
+        begin
+          events = source.collect!
+          attrs = Solanum.merge_attrs(@defaults, source.attributes)
+          events = events.map do |event|
+            Solanum.merge_attrs(attrs, event)
+          end
+          record! events
+        rescue => e
+          STDERR.puts "Error collecting events from source #{source.type}: #{e}"
         end
-        record! events
         reschedule! source
       end
     end
