@@ -6,21 +6,26 @@ defaults:
 
 sources:
   - type: cpu
-    per_core: true
-  - type: cpu_freq
-    class: Solanum::Source::CPUFreq
-    period: 30
+    detailed: false
+    per_core: false
+    thresholds:
+      warning: 0.8
+      critical: 0.9
+  - type: uptime
+    period: 60
   - type: load
+    thresholds:
+      warning: 4
+      critical: 8
   - type: memory
   - type: diskstats
+    detailed: false
     devices:
       - sda
-  - type: sensors
-    sensors:
-      coretemp: "Core 0"
-      temp1: temp1
-      temp2: temp2
-      temp3: temp3
+  - type: network
+    detailed: false
+    interfaces:
+      - wlan0
 
 outputs:
   - type: print
