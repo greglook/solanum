@@ -3,6 +3,8 @@ require 'solanum/source'
 class Solanum::Source::Load < Solanum::Source
   attr_reader :thresholds
 
+  STAT_FILE = '/proc/loadavg'
+
 
   def initialize(opts)
     super(opts)
@@ -26,7 +28,7 @@ class Solanum::Source::Load < Solanum::Source
       description: "Up for #{days} days, #{duration}",
     }
 
-    loadavg = File.read('/proc/loadavg').chomp.split(' ')
+    loadavg = File.read(STAT_FILE).chomp.split(' ')
 
     load1m = loadavg[0].to_f
     events << {

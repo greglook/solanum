@@ -3,6 +3,7 @@ require 'solanum/source'
 class Solanum::Source::Cpu < Solanum::Source
   attr_reader :detailed, :per_core, :thresholds
 
+  STAT_FILE = '/proc/stat'
   STATES = %w{user nice system idle iowait irqhard irqsoft}
 
 
@@ -31,7 +32,7 @@ class Solanum::Source::Cpu < Solanum::Source
   # Collect metric events.
   def collect!
     # Parse lines from usage stats.
-    lines = File.readlines('/proc/stat').take_while {|l| l.start_with? 'cpu' }
+    lines = File.readlines(STAT_FILE).take_while {|l| l.start_with? 'cpu' }
     totals = {}
     lines.each do |line|
       name, data = parse_info(line)
