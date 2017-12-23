@@ -48,7 +48,7 @@ module Config
       nil
     else
       begin
-        puts "#{cls}.new(#{args.inspect})" # DEBUG
+        #puts "#{cls}.new(#{args.inspect})" # DEBUG
         cls.new(args)
       rescue => e
         STDERR.puts "Error constructing #{namespace} type #{type}: #{args.inspect} #{e}"

@@ -23,7 +23,7 @@ class Schedule
     if entry
       next_time, next_id = *entry
       duration = next_time - Time.now
-      puts "Next scheduled run for #{next_id} at #{next_time} in #{duration} seconds" # DEBUG
+      #puts "Next scheduled run for #{next_id} at #{next_time} in #{duration} seconds" # DEBUG
       duration
     end
   end

@@ -80,6 +80,7 @@ class Solanum
     end
     raise "Source #{source.inspect} is not present in source list!" unless idx
     @schedule.insert!(source.next_run, idx)
+    @scheduler.wakeup
   end
 
 
@@ -92,8 +93,27 @@ class Solanum
   end
 
 
+  # Run collection from the given source in a new thread.
+  def collect_events!(source)
+    Thread.new do
+      begin
+        events = source.collect!
+        attrs = Solanum.merge_attrs(@defaults, source.attributes)
+        events = events.map do |event|
+          Solanum.merge_attrs(attrs, event)
+        end
+        record! events
+      rescue => e
+        STDERR.puts "Error collecting events from source #{source.type}: #{e}"
+      end
+      reschedule! source
+    end
+  end
+
+
   # Runs the collection loop.
   def run!
+    @scheduler = Thread.current
     loop do
       # Determine when next scheduled source should run, and sleep if needed.
       duration = @schedule.next_wait || 1
@@ -106,22 +126,10 @@ class Solanum
       idx = @schedule.pop_ready!
       source = @sources[idx] if idx
       next unless source
-      puts "Source #{source.type} is ready to run!" # DEBUG
+      #puts "Source #{source.type} is ready to run!" # DEBUG
 
       # Start thread to collect and report events.
-      Thread.new do
-        begin
-          events = source.collect!
-          attrs = Solanum.merge_attrs(@defaults, source.attributes)
-          events = events.map do |event|
-            Solanum.merge_attrs(attrs, event)
-          end
-          record! events
-        rescue => e
-          STDERR.puts "Error collecting events from source #{source.type}: #{e}"
-        end
-        reschedule! source
-      end
+      collect_events! source
     end
   end
 
