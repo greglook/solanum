@@ -1,15 +1,12 @@
 Solanum
 =======
 
+[![Gem Version](https://badge.fury.io/rb/solanum.svg)](https://badge.fury.io/rb/solanum)
+
 This gem provides a monitoring daemon which can be configured to collect data
 from a variety of pluggable sources. The results can be printed to the console
 or sent to a [Riemann](http://riemann.io/) server. This requires the
 `riemann-client` gem to work.
-
-
-## Installation
-
-**TODO**
 
 
 ## Metric Events
@@ -19,6 +16,14 @@ have at minimum a `service` and `metric` with the measurement name and value,
 respectively. Events may also contain other attributes such as a `state`, `ttl`,
 `tags`, and so on - see the [Riemann concepts](http://riemann.io/concepts.html)
 page for more details.
+
+```ruby
+{
+  service: 'cpu usage',
+  metric: 0.1875,
+  state: 'ok',
+}
+```
 
 
 ## Configuration
