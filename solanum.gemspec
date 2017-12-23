@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'solanum'
-  s.version = '0.8.0'
+  s.version = '1.0.0'
   s.author = 'Greg Look'
   s.email = 'greg@greglook.net'
   s.homepage = 'https://github.com/greglook/solanum'
@@ -8,12 +8,12 @@ Gem::Specification.new do |s|
   s.summary = 'Extensible monitoring daemon'
   s.license = 'Public Domain'
 
-  s.add_dependency 'riemann-client', '>= 0.2.2'
+  s.add_dependency 'riemann-client', '>= 0.2.6'
 
   s.files = Dir['lib/**/*', 'bin/*', 'README.md'].to_a
   s.bindir = 'bin'
   s.executables << 'solanum'
   s.require_path = 'lib'
 
-  s.required_ruby_version = '>= 1.9.1'
+  s.required_ruby_version = '>= 1.9.3'
 end
