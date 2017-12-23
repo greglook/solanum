@@ -8,13 +8,13 @@ sources:
   - type: cpu
     detailed: false
     per_core: false
-    thresholds:
+    usage_states:
       warning: 0.8
       critical: 0.9
   - type: uptime
     period: 60
   - type: load
-    thresholds:
+    load_states:
       warning: 4
       critical: 8
   - type: memory

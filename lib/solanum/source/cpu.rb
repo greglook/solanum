@@ -2,7 +2,7 @@ require 'solanum/source'
 require 'solanum/util'
 
 class Solanum::Source::Cpu < Solanum::Source
-  attr_reader :detailed, :per_core, :thresholds
+  attr_reader :detailed, :per_core, :usage_states
 
   STAT_FILE = '/proc/stat'
   STATES = %w{user nice system idle iowait irqhard irqsoft}
@@ -13,7 +13,7 @@ class Solanum::Source::Cpu < Solanum::Source
     @last = nil
     @detailed = opts['detailed'] || false
     @per_core = opts['per_core'] || false
-    @thresholds = opts['thresholds'] || {}
+    @usage_states = opts['usage_states'] || {}
   end
 
 
@@ -73,7 +73,7 @@ class Solanum::Source::Cpu < Solanum::Source
     events << {
       service: 'cpu usage',
       metric: usage,
-      state: state_over(@thresholds, usage),
+      state: state_over(@usage_states, usage),
     }
 
     # detailed aggregate cpu state metrics
@@ -96,7 +96,7 @@ class Solanum::Source::Cpu < Solanum::Source
         events << {
           service: 'cpu core usage',
           metric: usage,
-          state: state_over(@thresholds, usage),
+          state: state_over(@usage_states, usage),
           cpu_core: name,
         }
 

@@ -2,14 +2,14 @@ require 'solanum/source'
 require 'solanum/util'
 
 class Solanum::Source::Load < Solanum::Source
-  attr_reader :thresholds
+  attr_reader :load_states
 
   STAT_FILE = '/proc/loadavg'
 
 
   def initialize(opts)
     super(opts)
-    @thresholds = opts['thresholds'] || {}
+    @load_states = opts['load_states'] || {}
   end
 
 
@@ -23,7 +23,7 @@ class Solanum::Source::Load < Solanum::Source
     events << {
       service: 'process load',
       metric: load1m,
-      state: state_over(@thresholds, load1m),
+      state: state_over(@load_states, load1m),
     }
 
     running, count = *loadavg[3].split('/')
