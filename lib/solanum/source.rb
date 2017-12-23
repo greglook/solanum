@@ -19,19 +19,5 @@ class Source
     from + jitter*@period
   end
 
-
-  # Calculate the state of a metric.
-  def event_state(metric)
-    crit_at = @thresholds['critical']
-    warn_at = @thresholds['warning']
-    if crit_at && crit_at <= metric
-      'critical'
-    elsif warn_at && warn_at <= metric
-      'warning'
-    else
-      'ok'
-    end
-  end
-
 end
 end

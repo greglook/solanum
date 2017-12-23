@@ -1,4 +1,5 @@
 require 'solanum/source'
+require 'solanum/util'
 
 class Solanum::Source::Cpu < Solanum::Source
   attr_reader :detailed, :per_core, :thresholds
@@ -72,7 +73,7 @@ class Solanum::Source::Cpu < Solanum::Source
     events << {
       service: 'cpu usage',
       metric: usage,
-      state: event_state(usage),
+      state: state_over(@thresholds, usage),
     }
 
     # detailed aggregate cpu state metrics
@@ -95,7 +96,7 @@ class Solanum::Source::Cpu < Solanum::Source
         events << {
           service: 'cpu core usage',
           metric: usage,
-          state: event_state(usage),
+          state: state_over(@thresholds, usage),
           cpu_core: name,
         }
 

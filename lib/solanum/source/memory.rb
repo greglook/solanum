@@ -1,12 +1,14 @@
 require 'solanum/source'
+require 'solanum/util'
 
 class Solanum::Source::Memory < Solanum::Source
-  attr_reader :thresholds
+  attr_reader :thresholds, :swap_thresholds
 
 
   def initialize(opts)
     super(opts)
     @thresholds = opts['thresholds'] || {}
+    @swap_thresholds = opts['swap_thresholds'] || {}
   end
 
 
@@ -37,7 +39,7 @@ class Solanum::Source::Memory < Solanum::Source
     events << {
       service: 'memory usage',
       metric: usage,
-      state: event_state(usage),
+      state: state_over(@thresholds, usage),
     }
 
     events << {
@@ -58,7 +60,7 @@ class Solanum::Source::Memory < Solanum::Source
       events << {
         service: 'swap usage',
         metric: usage,
-        state: event_state(usage),
+        state: state_over(@swap_thresholds, usage),
       }
     end
 
