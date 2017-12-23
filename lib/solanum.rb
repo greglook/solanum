@@ -1,81 +1,136 @@
+require 'solanum/config'
+require 'solanum/schedule'
+require 'thread'
+
+
 # Class which wraps up an active Solanum monitoring system into an object.
-#
-# Author:: Greg Look
 class Solanum
-  attr_reader :sources, :services, :metrics
+  attr_reader :defaults, :sources, :outputs
 
-  require 'solanum/config'
-  require 'solanum/source'
+  # Merge two event attribute maps together, concatenating tags.
+  def self.merge_attrs(a, b)
+    stringify = lambda do |x|
+      o = {}
+      x.keys.each do |k|
+        o[k.to_s] = x[k]
+      end
+      o
+    end
+
+    if a.nil?
+      stringify[b]
+    elsif b.nil?
+      stringify[a]
+    else
+      a = stringify[a]
+      b = stringify[b]
+      tags = a['tags'] ? a['tags'].dup : []
+      tags.concat(b['tags']) if b['tags']
+      tags.uniq!
+      x = a.dup.merge(b)
+      x['tags'] = tags unless tags.empty?
+      x
+    end
+  end
 
 
-  # Loads the given monitoring scripts and initializes the sources and service
-  # definitions.
-  def initialize(scripts)
+  # Loads the given configuration file(s) and initializes the system.
+  def initialize(config_paths)
+    @defaults = {tags: []}
     @sources = []
-    @services = []
-    @metrics = {}
+    @outputs = []
 
-    scripts.each do |path|
-      begin
-        config = Solanum::Config.new(path)
-        @sources.concat(config.sources)
-        @services.concat(config.services)
-      rescue => e
-        STDERR.puts "Error loading monitor script #{path}: #{e}"
-      end
+    # Load and merge files.
+    config_paths.each do |path|
+      conf = Config.load_file(path)
+
+      # merge defaults, update tags
+      @defaults = Solanum.merge_attrs(@defaults, conf[:defaults])
+
+      # sources and outputs are additive
+      @sources.concat(conf[:sources])
+      @outputs.concat(conf[:outputs])
     end
 
+    # Add default print output.
+    if @outputs.empty?
+      require 'solanum/output/print'
+      @outputs << Solanum::Output::Print.new()
+    end
+
+    @defaults.freeze
+    @outputs.freeze
     @sources.freeze
-    @services.freeze
-  end
 
-
-  # Collects metrics from the given sources, in order. Updates the internal
-  # merged map of metric data.
-  def collect!
-    @old_metrics = @metrics
-    @metrics = @sources.reduce({}) do |metrics, source|
-      begin
-        new_metrics = source.collect(metrics) || {}
-        metrics.merge(new_metrics)
-      rescue => e
-        STDERR.puts "Error collecting metrics from #{source}: #{e}"
-        metrics
-      end
+    @schedule = Solanum::Schedule.new
+    @sources.each_with_index do |source, i|
+      @schedule.insert!(source.next_run, i)
     end
   end
 
 
-  # Builds full events from a set of service prototypes, old metrics, and new
-  # metrics.
-  def build_events(defaults={})
-    @metrics.keys.sort.map do |service|
-      value = @metrics[service]
-      prototype = @services.select{|m| m[0] === service }.map{|m| m[1] }.reduce({}, &:merge)
+  # Reschedule the given source for later running.
+  def reschedule!(source)
+    idx = nil
+    @sources.each_with_index do |s, i|
+      if s == source
+        idx = i
+        break
+      end
+    end
+    raise "Source #{source.inspect} is not present in source list!" unless idx
+    @schedule.insert!(source.next_run, idx)
+    @scheduler.wakeup
+  end
 
-      state = prototype[:state] ? prototype[:state].call(value) : :ok
-      tags = ((prototype[:tags] || []) + (defaults[:tags] || [])).uniq
-      ttl = prototype[:ttl] || defaults[:ttl]
 
-      if prototype[:diff]
-        last = @old_metrics[service]
-        if last && last <= value
-          value = value - last
-        else
-          value = nil
+  # Report a batch of events to all reporters.
+  def record!(events)
+    # TODO: does this need locking?
+    @outputs.each do |output|
+      output.write_events events
+    end
+  end
+
+
+  # Run collection from the given source in a new thread.
+  def collect_events!(source)
+    Thread.new do
+      begin
+        events = source.collect!
+        attrs = Solanum.merge_attrs(@defaults, source.attributes)
+        events = events.map do |event|
+          Solanum.merge_attrs(attrs, event)
         end
+        record! events
+      rescue => e
+        STDERR.puts "Error collecting events from source #{source.type}: #{e}"
+      end
+      reschedule! source
+    end
+  end
+
+
+  # Runs the collection loop.
+  def run!
+    @scheduler = Thread.current
+    loop do
+      # Determine when next scheduled source should run, and sleep if needed.
+      duration = @schedule.next_wait || 1
+      if 0 < duration
+        sleep duration
+        next
       end
 
-      if value
-        defaults.merge({
-          service: service,
-          metric: value,
-          state: state.to_s,
-          tags: tags,
-          ttl: ttl
-        })
-      end
-    end.compact
+      # Get the next ready source.
+      idx = @schedule.pop_ready!
+      source = @sources[idx] if idx
+      next unless source
+      #puts "Source #{source.type} is ready to run!" # DEBUG
+
+      # Start thread to collect and report events.
+      collect_events! source
+    end
   end
 
 end

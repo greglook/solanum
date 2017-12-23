@@ -1,0 +1,35 @@
+---
+defaults:
+  ttl: 60
+  tags:
+    - solanum
+
+sources:
+  - type: cpu
+    detailed: false
+    per_core: false
+    thresholds:
+      warning: 0.8
+      critical: 0.9
+  - type: uptime
+    period: 60
+  - type: load
+    thresholds:
+      warning: 4
+      critical: 8
+  - type: memory
+  - type: diskstats
+    detailed: false
+    devices:
+      - sda
+  - type: network
+    detailed: false
+    interfaces:
+      - wlan0
+
+outputs:
+  - type: print
+  - type: riemann
+    protocol: tls
+    server: riemann.example.com
+    port: 5554
