@@ -38,6 +38,5 @@ sources:
 outputs:
   - type: print
   - type: riemann
-    protocol: tls
-    server: riemann.example.com
-    port: 5554
+    host: riemann.example.com
+    port: 5555

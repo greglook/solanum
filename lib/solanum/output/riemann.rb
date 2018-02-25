@@ -11,7 +11,9 @@ class Riemann
   def write_events(events)
     # OPTIMIZE: batch events?
     events.each do |event|
-      @client << event
+      ev = {}
+      event.each {|k,v| ev[k.intern] = v }
+      @client << ev
     end
   end
 
