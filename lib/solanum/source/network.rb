@@ -1,15 +1,5 @@
 require 'solanum/source'
 
-# bytes - The total number of bytes of data transmitted or received by the interface.
-# packets - The total number of packets of data transmitted or received by the interface.
-# errs - The total number of transmit or receive errors detected by the device driver.
-# drop - The total number of packets dropped by the device driver.
-# fifo - The number of FIFO buffer errors.
-# frame - The number of packet framing errors.
-# colls - The number of collisions detected on the interface.
-# compressed - The number of compressed packets transmitted or received by the device driver. (This appears to be unused in the 2.2.15 kernel.)
-# carrier - The number of carrier losses detected by the device driver.
-# multicast - The number of multicast frames transmitted or received by the device driver.
 class Solanum::Source::Network < Solanum::Source
   attr_reader :interfaces, :detailed
 

@@ -1,5 +1,4 @@
 require 'solanum/source'
-require 'solanum/util'
 
 class Solanum::Source::Cpu < Solanum::Source
   attr_reader :detailed, :per_core, :usage_states

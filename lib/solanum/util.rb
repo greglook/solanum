@@ -1,3 +1,6 @@
+# Miscellaneous helper functions.
+
+
 # Return a human-friendly duration string for the given duration in seconds.
 def duration_str(duration)
   days = (duration/86400).to_i

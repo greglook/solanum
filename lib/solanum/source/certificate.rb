@@ -1,7 +1,6 @@
 require 'openssl'
 require 'socket'
 require 'solanum/source'
-require 'solanum/util'
 
 class Solanum::Source::Certificate < Solanum::Source
   attr_reader :host, :port, :ca_cert, :expiry_states

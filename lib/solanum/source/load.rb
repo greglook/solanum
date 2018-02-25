@@ -1,5 +1,4 @@
 require 'solanum/source'
-require 'solanum/util'
 
 class Solanum::Source::Load < Solanum::Source
   attr_reader :load_states

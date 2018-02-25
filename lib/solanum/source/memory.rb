@@ -1,5 +1,4 @@
 require 'solanum/source'
-require 'solanum/util'
 
 class Solanum::Source::Memory < Solanum::Source
   attr_reader :thresholds, :swap_thresholds

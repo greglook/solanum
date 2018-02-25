@@ -1,3 +1,5 @@
+require 'solanum/util'
+
 class Solanum
 class Source
   attr_reader :type, :period, :attributes
