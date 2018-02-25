@@ -35,10 +35,11 @@ class Solanum
 
 
   # Loads the given configuration file(s) and initializes the system.
-  def initialize(config_paths)
-    @defaults = {tags: []}
+  def initialize(defaults, config_paths)
     @sources = []
     @outputs = []
+    @defaults = defaults
+    @defaults[:tags] ||= []
 
     # Load and merge files.
     config_paths.each do |path|

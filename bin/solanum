@@ -5,10 +5,6 @@ $: << File.expand_path("../../lib", __FILE__)
 require 'optparse'
 require 'solanum'
 
-$options = {
-  period: 10,
-}
-
 $defaults = {
   host: %x{hostname --fqdn}.chomp,
   tags: [],
@@ -31,7 +27,6 @@ options = OptionParser.new do |opts|
   opts.on(      '--ttl SECONDS', "Default TTL for events (default: #{$defaults[:ttl]})") {|v| $defaults[:ttl] = v.to_i }
   opts.separator ""
   opts.separator "General Options:"
-  opts.on('-p', '--period SECONDS', "Seconds between updates (default: #{$options[:period]})") {|v| $options[:period] = v.to_i }
   opts.on('-h', '--help', "Displays usage information") { print opts; exit }
 end
 options.parse!
@@ -40,7 +35,7 @@ options.parse!
 fail options if ARGV.empty?
 
 # Construct monitoring system.
-$solanum = Solanum.new(ARGV)
+$solanum = Solanum.new($defaults, ARGV)
 fail "No sources loaded!" if $solanum.sources.empty?
 
 # Handle ^C interrupts gracefully.
