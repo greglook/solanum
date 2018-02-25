@@ -5,7 +5,7 @@ class Output
 class Riemann
 
   def initialize(args)
-    @client = Riemann::Client.new(host: args[:host], port: args[:port])
+    @client = ::Riemann::Client.new(host: args['host'], port: args['port'])
   end
 
   def write_events(events)
