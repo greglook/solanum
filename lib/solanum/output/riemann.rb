@@ -13,7 +13,7 @@ class Riemann
     events.each do |event|
       ev = {}
       event.each {|k,v| ev[k.intern] = v }
-      @client << ev
+      @client.tcp << ev
     end
   end
 
