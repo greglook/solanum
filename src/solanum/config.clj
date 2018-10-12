@@ -6,6 +6,8 @@
     [clojure.string :as str]
     [clojure.tools.logging :as log]
     [clojure.walk :as walk]
+    [solanum.source.core :as source]
+    [solanum.output.core :as output]
     [yaml.core :as yaml]))
 
 
@@ -90,3 +92,16 @@
   {:defaults (merge-attrs (:defaults a) (:defaults b))
    :sources (merge-list (:sources a) (:sources b))
    :outputs (merge-list (:outputs a) (:outputs b))})
+
+
+
+;; ## Plugin Construction
+
+; TODO: dynamically load namespaces?
+
+(defn initialize-plugins
+  "Initialize all source and output plugins."
+  [config]
+  (-> config
+      (update :sources (partial into [] (map source/initialize)))
+      (update :outputs (partial into [] (map output/initialize)))))
