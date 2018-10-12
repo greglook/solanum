@@ -59,9 +59,11 @@
       (println (parse :summary))
       (flush)
       (System/exit (if (:help options) 0 1)))
-    (println '(do the-thing))
     (prn options)
-    (prn config-paths)
-    ; TODO: load and merge configs
-    ; TODO: enter scheduling loop
+    (let [config (reduce cfg/merge-config (map cfg/load-file config-paths))]
+      (prn config)
+      ; TODO: default print output?
+      ; TODO: throw if no sources or no outputs
+      ; TODO: enter scheduling loop
+      (println '(do the-thing)))
     (System/exit 0)))
