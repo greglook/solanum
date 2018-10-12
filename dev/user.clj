@@ -6,4 +6,5 @@
     [clojure.set :as set]
     [clojure.stacktrace :refer [print-cause-trace]]
     [clojure.string :as str]
-    [clojure.tools.namespace.repl :refer [refresh]]))
+    [clojure.tools.namespace.repl :refer [refresh]]
+    [solanum.config :as cfg]))

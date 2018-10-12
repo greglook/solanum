@@ -6,7 +6,8 @@
     [clojure.string :as str]
     [clojure.tools.cli :as cli]
     [clojure.tools.logging :as log]
-    [solanum.config :as cfg]))
+    [solanum.config :as cfg]
+    [solanum.scheduler :as scheduler]))
 
 
 (defn- load-hostname
@@ -59,11 +60,22 @@
       (println (parse :summary))
       (flush)
       (System/exit (if (:help options) 0 1)))
-    (prn options)
     (let [config (reduce cfg/merge-config (map cfg/load-file config-paths))]
-      (prn config)
-      ; TODO: default print output?
-      ; TODO: throw if no sources or no outputs
+      (when (empty? (:sources config))
+        (binding [*out* *err*]
+          (println "No sources defined in configuration files")
+          (System/exit 2)))
+      (when (empty? (:outputs config))
+        (binding [*out* *err*]
+          (println "No outputs defined in configuration files")
+          (System/exit 2)))
+      (println '(do the-thing))
       ; TODO: enter scheduling loop
-      (println '(do the-thing)))
+      ; keep an ordered list of next-runs
+      ; sleep until next scheduled source
+      ; start a new thread which:
+      ;   - collects events from the source
+      ;   - puts the events into a queue
+      ;   - re-schedules the source for the next period
+      (prn config))
     (System/exit 0)))
