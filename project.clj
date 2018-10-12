@@ -9,11 +9,9 @@
 
   :dependencies
   [[org.clojure/clojure "1.9.0"]
+   [org.clojure/tools.cli "0.4.1"]
    [org.clojure/tools.logging "0.4.1"]
-   ;[amperity/envoy "0.3.1"]
-   ;[com.stuartsierra/component "0.3.2"]
-   ;[manifold "0.1.6"]
-   [riemann-clojure-client "0.4.2"]]
+   [riemann-clojure-client "0.5.0"]]
 
   :profiles
   {:repl
@@ -21,4 +19,10 @@
 
    :test
    {:dependencies [[commons-logging "1.2"]]
-    :jvm-opts ["-Dorg.apache.commons.logging.Log=org.apache.commons.logging.impl.NoOpLog"]}})
+    :jvm-opts ["-Dorg.apache.commons.logging.Log=org.apache.commons.logging.impl.NoOpLog"]}
+
+   :uberjar
+   {:target-path "target/uberjar"
+    :uberjar-name "solanum.jar"
+    :main solanum.main
+    :aot :all}})
