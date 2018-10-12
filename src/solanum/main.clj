@@ -5,7 +5,8 @@
     [clojure.java.shell :as sh]
     [clojure.string :as str]
     [clojure.tools.cli :as cli]
-    [clojure.tools.logging :as log]))
+    [clojure.tools.logging :as log]
+    [solanum.config :as cfg]))
 
 
 (defn- load-hostname

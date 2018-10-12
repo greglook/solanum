@@ -11,6 +11,7 @@
   [[org.clojure/clojure "1.9.0"]
    [org.clojure/tools.cli "0.4.1"]
    [org.clojure/tools.logging "0.4.1"]
+   [io.forward/yaml "1.0.9"]
    [riemann-clojure-client "0.5.0"]]
 
   :profiles
