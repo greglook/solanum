@@ -18,6 +18,13 @@
       (log/warn "Failed to resolve local hostname:" (pr-str (:err result))))))
 
 
+(defn- parse-attr-opt
+  "Parse an attribute option and add it to the option map."
+  [opts id arg]
+  (let [[k v] (str/split arg #"=" 2)]
+    (assoc-in opts [id k] v)))
+
+
 (def cli-options
   "Command-line tool options."
   [["-H" "--host NAME" "Metric event host name"
@@ -25,12 +32,11 @@
    ["-a" "--attribute KEY=VAL" "Attribute to add to every event (may be set multiple times)"
     :default {}
     :default-desc ""
-    :parse-fn #(vec (str/split % #"=" 2))
-    :update-fn conj]
+    :assoc-fn parse-attr-opt]
    ["-t" "--tag TAG" "Tag to add to every event (may be set multiple times)"
     :default #{}
     :default-desc ""
-    :update-fn conj]
+    :assoc-fn #(update %1 %2 conj %3)]
    [nil "--ttl SECONDS" "Default TTL for events"
     :parse-fn #(Integer/parseInt %)
     :default 60]
