@@ -15,7 +15,10 @@
 
   :profiles
   {:repl
-   {:source-paths ["dev"]}
+   {:source-paths ["dev"]
+    :dependencies
+    [[clj-stacktrace "0.2.8"]
+     [org.clojure/tools.namespace "0.2.11"]]}
 
    :test
    {:dependencies [[commons-logging "1.2"]]
