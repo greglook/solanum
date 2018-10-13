@@ -70,16 +70,25 @@
       (let [schedule (source-schedule sources)]
         (loop []
           (when-not (Thread/interrupted)
-            (locking schedule
-              (let [[collect-at source :as entry] (.peek schedule)
-                    millis (.until (Instant/now) collect-at ChronoUnit/MILLIS)]
-                (if (< millis 250)
-                  ; Close enough, schedule the source for collection.
-                  (do (.remove schedule entry)
-                      (schedule-collection schedule source event-chan))
-                  ; Next source collection isn't soon enough, so wait.
-                  (.wait schedule millis)))))
-          (recur)))
+            (try
+              (locking schedule
+                (if-let [entry (.peek schedule)]
+                  (let [[collect-at source] entry
+                        millis (.until (Instant/now) collect-at ChronoUnit/MILLIS)]
+                    (if (< millis 250)
+                      ; Close enough, schedule the source for collection.
+                      (do (.remove schedule entry)
+                          (schedule-collection schedule source event-chan))
+                      ; Next source collection isn't soon enough, so wait.
+                      (.wait schedule millis)))
+                  ; Nothing scheduled.
+                  (.wait schedule 1000)))
+              (catch InterruptedException ie
+                (throw ie))
+              (catch Exception ex
+                (log/error ex "Failure while running scheduler logic")
+                (Thread/sleep 500)))
+            (recur))))
       (catch InterruptedException ie
         ; Exit cleanly
         nil))))

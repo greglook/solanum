@@ -45,6 +45,7 @@
             :period 300}]}
 
 
+(def config nil)
 (def channel nil)
 (def scheduler nil)
 (def writer nil)
@@ -64,7 +65,7 @@
           (log/warn remaining "events remaining in channel")))
       (alter-var-root #'channel (constantly nil)))
     (when writer
-      (writer/stop! writer)
+      (writer/stop! writer 1000)
       (alter-var-root #'writer (constantly nil))))
   :stopped)
 
@@ -74,10 +75,11 @@
   ([]
    (start! (cfg/load-files ["config.yml"])))
   ([config]
+   (alter-var-root #'config (constantly config))
    (when (or channel scheduler writer)
      (throw (IllegalStateException.
               "There are already running resources, call `stop!` first.")))
    (alter-var-root #'channel (constantly (chan/create 1000)))
    (alter-var-root #'scheduler (constantly (scheduler/start! (:sources config) channel)))
-   (alter-var-root #'writer (constantly (writer/start! (:outputs config) channel)))
+   (alter-var-root #'writer (constantly (writer/start! (:outputs config) channel 100 10)))
    :started))

@@ -83,6 +83,6 @@
               (if (zero? remaining)
                 (log/info "Drained channel events")
                 (log/warn remaining "events remaining in channel")))
-            (writer/stop! writer)))))
+            (writer/stop! writer 1000)))))
     (shutdown-agents)
     (System/exit 0)))
