@@ -3,7 +3,7 @@
 
 
 (defprotocol Source
-  "..."
+  "Source of metrics events."
 
   (collect-events
     [source]

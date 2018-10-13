@@ -3,7 +3,7 @@
 
 
 (defprotocol Output
-  "..."
+  "Sink which can output batches of events."
 
   (write-events
     [output events]
