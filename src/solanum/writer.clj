@@ -51,8 +51,9 @@
   "Start a new thread to run event writer. The events will be batched for up to
   `max-delay` milliseconds or `max-size` events, whichever occurs first."
   [event-chan outputs max-delay max-size]
-  (doto (Thread. (writer-loop outputs event-chan max-delay max-size)
-                 "solanum-writer")
+  (doto (Thread.
+          ^Runnable (writer-loop outputs event-chan max-delay max-size)
+          "solanum-writer")
     (.start)))
 
 

@@ -51,7 +51,7 @@
 
 (defn- schedule-collection
   "Launch a new thread to collect metrics from the source."
-  [schedule defaults source event-chan]
+  [^Queue schedule defaults source event-chan]
   (future
     (collect-source defaults source event-chan)
     (locking schedule
@@ -96,8 +96,9 @@
 (defn start!
   "Start a new thread to run the scheduling logic."
   [defaults sources event-chan]
-  (doto (Thread. (scheduler-loop defaults sources event-chan)
-                 "solanum-scheduler")
+  (doto (Thread.
+          ^Runnable (scheduler-loop defaults sources event-chan)
+          "solanum-scheduler")
     (.start)))
 
 

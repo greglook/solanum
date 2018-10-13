@@ -9,7 +9,7 @@
 (defn create
   "Create a new channel with the given capacity."
   [capacity]
-  (LinkedBlockingQueue. capacity))
+  (LinkedBlockingQueue. (long capacity)))
 
 
 (defn put!
