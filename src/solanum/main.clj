@@ -87,17 +87,23 @@
                                   (:outputs config)
                                   (:batch-delay options)
                                   (:batch-size options))]
-        (try
-          ; Block on something while the threads do their thing.
-          (locking config
-            (.wait config))
-          ; TODO: register as shutdown hook instead?
-          (finally
-            (scheduler/stop! scheduler 1000)
-            (let [remaining (chan/wait-drained events 1000)]
-              (if (zero? remaining)
-                (log/info "Drained channel events")
-                (log/warn remaining "events remaining in channel")))
-            (writer/stop! writer 1000)))))
+        ; Register cleanup work.
+        ; FIXME: still doesn't handle SIGINT
+        (.addShutdownHook
+          (Runtime/getRuntime)
+          (Thread. (fn cleanup
+                     []
+                     (log/info "Shutting down...")
+                     (scheduler/stop! scheduler 1000)
+                     (let [remaining (chan/wait-drained events 1000)]
+                       (if (zero? remaining)
+                         (log/info "Drained channel events")
+                         (log/warn remaining "events remaining in channel")))
+                     (writer/stop! writer 1000)
+                     (log/info "Done"))
+                   "solanum-shutdown"))
+        ; Block on something while the threads do their thing.
+        (locking config
+          (.wait ^Object config))))
     (shutdown-agents)
     (System/exit 0)))
