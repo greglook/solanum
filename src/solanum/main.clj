@@ -6,8 +6,10 @@
     [clojure.string :as str]
     [clojure.tools.cli :as cli]
     [clojure.tools.logging :as log]
+    [solanum.channel :as chan]
     [solanum.config :as cfg]
-    [solanum.scheduler :as scheduler]))
+    [solanum.scheduler :as scheduler]
+    [solanum.writer :as writer]))
 
 
 (defn- load-hostname
@@ -71,13 +73,15 @@
         (binding [*out* *err*]
           (println "No outputs defined in configuration files")
           (System/exit 2)))
-      (println '(do the-thing))
-      ; TODO: enter scheduling loop
-      ; keep an ordered list of next-runs
-      ; sleep until next scheduled source
-      ; start a new thread which:
-      ;   - collects events from the source
-      ;   - puts the events into a queue
-      ;   - re-schedules the source for the next period
-      (prn config))
+      (let [events (chan/create 1000)
+            scheduler (scheduler/start! (:sources config) events)
+            writer (writer/start! (:outputs config) events)]
+        (try
+          ; TODO: block...
+          (.wait config)
+          (finally
+            (scheduler/stop! scheduler 1000)
+            (chan/wait-drained events 1000)
+            (writer/stop! writer)))))
+    (shutdown-agents)
     (System/exit 0)))
