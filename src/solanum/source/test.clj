@@ -1,4 +1,4 @@
-(ns solanum.source.uptime
+(ns solanum.source.test
   "A test source that generates fake events."
   (:require
     [solanum.source.core :as source]))
