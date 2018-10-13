@@ -1,4 +1,9 @@
 (ns solanum.scheduler
+  "Event collection scheduling code."
+  (:require
+    [solanum.channel :as chan]
+    [solanum.source.core :as source]
+    [clojure.tools.logging :as log])
   (:import
     (java.time
       Instant)
@@ -6,16 +11,16 @@
       ChronoUnit)
     (java.util
       PriorityQueue
-      Queue)
-    (java.util.concurrent
-      LinkedBlockingQueue
-      TimeUnit)))
+      Queue)))
 
 
 (defn- next-run
   "Determine when the next run of the source should be."
   [source]
-  (.plusSeconds (Instant/now) (or (:period source) 60)))
+  (let [period (or (:period source) 60)
+        jitter (or (:jitter source) 0.10)
+        sleep (* 1000 period (+ 1.0 (rand jitter)))]
+    (.plusMillis (Instant/now) sleep)))
 
 
 (defn- source-schedule
@@ -34,39 +39,63 @@
   "Collect events from a source and put them onto the event channel."
   [source event-chan]
   (try
-    (println "TODO: Collect events from" (pr-str source))
-    (Thread/sleep 5000)
-    (let [events [,,,]]
-      ; TODO: merge in defaults from source
-      (run! #(.put event-chan %) events))
+    (log/debug "Collecting events from" (pr-str source))
+    (->> (source/collect-events source)
+         ; TODO: merge in defaults from source
+         (map identity)
+         (run! (partial chan/put! event-chan)))
     (catch Exception ex
-      ; TODO: handle exception - at least log, maybe send an event?
+      (log/warn ex "Failure collecting from" (:type source) "source")
+      ; TODO: send an event?
       nil)))
+
+
+(defn- schedule-collection
+  "Launch a new thread to collect metrics from the source."
+  [schedule source event-chan]
+  (future
+    (collect-source source event-chan)
+    (locking schedule
+      (.add schedule [(next-run source) source])
+      (.notifyAll schedule))))
 
 
 (defn- scheduler-loop
   "Loop over the sources, scheduling each one in a new thread as its time
   comes."
   [sources event-chan]
-  (try
-    (let [schedule (source-schedule sources)]
-      (loop []
-        (locking schedule
-          (let [[collect-at source :as entry] (.peek schedule)
-                millis (.until (Instant/now) collect-at ChronoUnit/MILLIS)]
-            (if (< millis 250)
-              ; Close enough, schedule the source for collection.
-              (do
-                (.remove schedule entry)
-                (future
-                  (collect-source source event-chan)
-                  ; Reschedule next collection from source.
-                  (locking schedule
-                    (.add schedule [(next-run source) source])
-                    (.notifyAll schedule))))
-              ; Next source collection isn't soon enough, so wait.
-              (.wait schedule millis))))
-        (recur)))
-    (catch InterruptedException ie
-      ; Exit cleanly
-      nil)))
+  (fn scheduler
+    []
+    (try
+      (let [schedule (source-schedule sources)]
+        (loop []
+          (when-not (Thread/interrupted)
+            (locking schedule
+              (let [[collect-at source :as entry] (.peek schedule)
+                    millis (.until (Instant/now) collect-at ChronoUnit/MILLIS)]
+                (if (< millis 250)
+                  ; Close enough, schedule the source for collection.
+                  (do (.remove schedule entry)
+                      (schedule-collection schedule source event-chan))
+                  ; Next source collection isn't soon enough, so wait.
+                  (.wait schedule millis)))))
+          (recur)))
+      (catch InterruptedException ie
+        ; Exit cleanly
+        nil))))
+
+
+(defn start!
+  "Start a new thread to run the scheduling logic."
+  [sources event-chan]
+  (doto (Thread. (scheduler-loop sources event-chan)
+                 "solanum-scheduler")
+    (.start)))
+
+
+(defn stop!
+  "Stop a running scheduler thread, waiting up to `timeout` milliseconds for it
+  to terminate."
+  [^Thread thread timeout]
+  (.interrupt thread)
+  (.join thread timeout))
