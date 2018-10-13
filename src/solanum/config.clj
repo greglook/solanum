@@ -99,7 +99,7 @@
 (defn initialize-plugins
   "Initialize all source and output plugins."
   [config]
-  (-> config
+  (-> (into {} config)
       (update :sources (partial into [] (keep configure-source)))
       (update :outputs (partial into [] (keep configure-output)))))
 
