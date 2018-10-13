@@ -77,11 +77,14 @@
             scheduler (scheduler/start! (:sources config) events)
             writer (writer/start! (:outputs config) events)]
         (try
-          ; TODO: block...
           (.wait config)
+          ; TODO: register as shutdown hook instead?
           (finally
             (scheduler/stop! scheduler 1000)
-            (chan/wait-drained events 1000)
+            (let [remaining (chan/wait-drained events 1000)]
+              (if (zero? remaining)
+                (log/info "Drained channel events")
+                (log/warn remaining "events remaining in channel")))
             (writer/stop! writer)))))
     (shutdown-agents)
     (System/exit 0)))

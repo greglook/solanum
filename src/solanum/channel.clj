@@ -25,14 +25,14 @@
 
 
 (defn wait-drained
-  "Wait up to `timeout` milliseconds for the channel to empty. Returns true
-  if the channel was empty when the function completed."
+  "Wait up to `timeout` milliseconds for the channel to empty. Returns the
+  number of events left in the channel."
   [^LinkedBlockingQueue channel timeout]
   (let [deadline (+ (System/nanoTime) (* 1000000 timeout))]
     (loop []
       (if (.isEmpty channel)
-        true
+        0
         (let [now (System/nanoTime)]
           (if (< now deadline)
             (do (Thread/sleep 10) (recur))
-            false))))))
+            (.size channel)))))))
