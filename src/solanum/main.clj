@@ -103,7 +103,6 @@
                      (log/info "Done"))
                    "solanum-shutdown"))
         ; Block on something while the threads do their thing.
-        (locking config
-          (.wait ^Object config))))
+        @(promise)))
     (shutdown-agents)
     (System/exit 0)))
