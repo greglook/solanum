@@ -43,6 +43,12 @@
    [nil "--ttl SECONDS" "Default TTL for events"
     :parse-fn #(Integer/parseInt %)
     :default 60]
+   [nil "--batch-delay MILLISECONDS" "Maximum duration to wait for events in a batch"
+    :parse-fn #(Integer/parseInt %)
+    :default 1000]
+   [nil "--batch-size COUNT" "Size threshold for sending a batch of events"
+    :parse-fn #(Integer/parseInt %)
+    :default 50]
    ["-h" "--help"]])
 
 
@@ -73,7 +79,10 @@
           (System/exit 2)))
       (let [events (chan/create 1000)
             scheduler (scheduler/start! (:sources config) events)
-            writer (writer/start! (:outputs config) events)]
+            writer (writer/start! (:outputs config)
+                                  events
+                                  (:batch-delay options)
+                                  (:batch-size options))]
         (try
           (.wait config)
           ; TODO: register as shutdown hook instead?
