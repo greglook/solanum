@@ -84,7 +84,9 @@
                                   (:batch-delay options)
                                   (:batch-size options))]
         (try
-          (.wait config)
+          ; Block on something while the threads do their thing.
+          (locking config
+            (.wait config))
           ; TODO: register as shutdown hook instead?
           (finally
             (scheduler/stop! scheduler 1000)
