@@ -12,6 +12,7 @@
    [org.clojure/tools.cli "0.4.1"]
    [org.clojure/tools.logging "0.4.1"]
    [io.forward/yaml "1.0.9"]
+   [ch.qos.logback/logback-classic "1.1.7"]
    [riemann-clojure-client "0.5.0"]]
 
   :profiles
@@ -22,8 +23,9 @@
      [org.clojure/tools.namespace "0.2.11"]]}
 
    :test
-   {:dependencies [[commons-logging "1.2"]]
-    :jvm-opts ["-Dorg.apache.commons.logging.Log=org.apache.commons.logging.impl.NoOpLog"]}
+   {:jvm-opts ["-Dlogback-appender=nop"
+               "-Dlogback-level-root=TRACE"
+               "-Dlogback-level-solanum=TRACE"]}
 
    :uberjar
    {:target-path "target/uberjar"
