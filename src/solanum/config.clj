@@ -8,6 +8,7 @@
     [clojure.walk :as walk]
     [solanum.source.core :as source]
     [solanum.output.core :as output]
+    [solanum.util :as u]
     [yaml.core :as yaml]))
 
 
@@ -56,42 +57,12 @@
   (keywordize-types (yaml/from-file path)))
 
 
-
-;; ## Config Merging
-
-(defn- tagged?
-  "True if the attributes include some tag values."
-  [x]
-  (boolean (seq (:tags x))))
-
-
-(defn- merge-tags
-  "Combine two tag vectors together."
-  [a b]
-  (vec (distinct (concat a b))))
-
-
-(defn- merge-attrs
-  "Merge attribute maps, handling tags correctly."
-  [a b]
-  (let [attrs (merge a b)]
-    (if (or (tagged? a) (tagged? b))
-      (assoc attrs :tags (merge-tags (:tags a) (:tags b)))
-      attrs)))
-
-
-(defn- merge-list
-  "Merge two vectors of configuration together by concatenating them."
-  [a b]
-  (into (vec a) b))
-
-
 (defn merge-config
   "Merge configuration maps together to produce a combined config."
   [a b]
-  {:defaults (merge-attrs (:defaults a) (:defaults b))
-   :sources (merge-list (:sources a) (:sources b))
-   :outputs (merge-list (:outputs a) (:outputs b))})
+  {:defaults (u/merge-attrs (:defaults a) (:defaults b))
+   :sources (u/merge-vec (:sources a) (:sources b))
+   :outputs (u/merge-vec (:outputs a) (:outputs b))})
 
 
 
