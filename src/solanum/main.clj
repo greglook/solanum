@@ -62,9 +62,7 @@
       (println (parse :summary))
       (flush)
       (System/exit (if (:help options) 0 1)))
-    (let [config (->> (map cfg/load-file config-paths)
-                      (reduce cfg/merge-config)
-                      (cfg/initialize-plugins))]
+    (let [config (cfg/load-files config-paths)]
       (when (empty? (:sources config))
         (binding [*out* *err*]
           (println "No sources defined in configuration files")

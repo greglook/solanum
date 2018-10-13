@@ -12,20 +12,6 @@
     [yaml.core :as yaml]))
 
 
-; TODO: spec out config
-#_
-{:defaults {:tags ["solanum"], :ttl 60},
- :outputs [{:type "print"} {:host "riemann.example.com", :port 5555, :type "riemann"}],
- :sources [{:detailed false, :per_core false, :type "cpu", :usage_states {:critical 0.9, :warning 0.8}}
-           {:period 60, :type "uptime"}
-           {:load_states {:critical 8, :warning 4}, :type "load"}
-           {:type "memory"}
-           {:detailed false, :devices ["sda"], :type "diskstats"}
-           {:detailed false, :interfaces ["wlan0"], :type "network"}
-           {:attributes {:ttl 3600}, :expiry_states {:critical 30, :warning 180}, :host "www.google.com", :period 300, :type "certificate"}]}
-
-
-
 ;; ## File Loading
 
 (defn- type-entry?
@@ -51,13 +37,13 @@
   (walk/postwalk keywordize-type-tuple m))
 
 
-(defn load-file
+(defn- load-file
   "Load some configuration from a file."
   [path]
   (keywordize-types (yaml/from-file path)))
 
 
-(defn merge-config
+(defn- merge-config
   "Merge configuration maps together to produce a combined config."
   [a b]
   {:defaults (u/merge-attrs (:defaults a) (:defaults b))
@@ -116,3 +102,11 @@
   (-> config
       (update :sources (partial into [] (keep configure-source)))
       (update :outputs (partial into [] (keep configure-output)))))
+
+
+(defn load-files
+  "Load multiple files, merge them together, and initialize the plugins."
+  [config-paths]
+  (->> (map load-file config-paths)
+       (reduce merge-config)
+       (initialize-plugins)))
