@@ -1,5 +1,7 @@
 (ns solanum.output.core
-  "Core event sink protocol and methods.")
+  "Core event sink protocol and methods."
+  (:require
+    [clojure.tools.logging :as log]))
 
 
 (defprotocol Output
@@ -13,3 +15,8 @@
 (defmulti initialize
   "Construct a new output from a type keyword."
   :type)
+
+
+(defmethod initialize :default
+  [config]
+  (log/error "No output definition for type" (pr-str (:type config))))

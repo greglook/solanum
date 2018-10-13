@@ -1,5 +1,7 @@
 (ns solanum.source.core
-  "Core event source protocol and methods.")
+  "Core event source protocol and methods."
+  (:require
+    [clojure.tools.logging :as log]))
 
 
 (defprotocol Source
@@ -13,3 +15,8 @@
 (defmulti initialize
   "Construct a new source from a type keyword."
   :type)
+
+
+(defmethod initialize :default
+  [config]
+  (log/error "No source definition for type" (pr-str (:type config))))
