@@ -19,11 +19,13 @@
 
 (defn merge-attrs
   "Merge attribute maps, handling tags correctly."
-  [a b]
-  (let [attrs (merge a b)]
-    (if (or (tagged? a) (tagged? b))
-      (assoc attrs :tags (merge-tags (:tags a) (:tags b)))
-      attrs)))
+  ([a b]
+   (let [attrs (merge a b)]
+     (if (or (tagged? a) (tagged? b))
+       (assoc attrs :tags (merge-tags (:tags a) (:tags b)))
+       attrs)))
+  ([a b & more]
+   (reduce merge-attrs (list* a b more))))
 
 
 (defn merge-vec

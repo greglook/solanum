@@ -3,6 +3,7 @@
   (:require
     [solanum.channel :as chan]
     [solanum.source.core :as source]
+    [solanum.util :as u]
     [clojure.tools.logging :as log])
   (:import
     (java.time
@@ -28,7 +29,6 @@
   that should run at that time."
   ^Queue
   [sources]
-  ; TODO: is it actually useful having a mutable queue here?
   (let [compare-first #(compare (first %1) (first %2))
         queue (PriorityQueue. (count sources) compare-first)]
     (run! #(.add queue [(next-run %) %]) sources)
@@ -37,12 +37,11 @@
 
 (defn- collect-source
   "Collect events from a source and put them onto the event channel."
-  [source event-chan]
+  [defaults source event-chan]
   (try
     (log/debug "Collecting events from" (pr-str source))
     (->> (source/collect-events source)
-         ; TODO: merge in defaults from source
-         (map identity)
+         (map (partial u/merge-attrs defaults (:attributes source)))
          (run! (partial chan/put! event-chan)))
     (catch Exception ex
       (log/warn ex "Failure collecting from" (:type source) "source")
@@ -52,9 +51,9 @@
 
 (defn- schedule-collection
   "Launch a new thread to collect metrics from the source."
-  [schedule source event-chan]
+  [schedule defaults source event-chan]
   (future
-    (collect-source source event-chan)
+    (collect-source defaults source event-chan)
     (locking schedule
       (.add schedule [(next-run source) source])
       (.notifyAll schedule))))
@@ -63,7 +62,7 @@
 (defn- scheduler-loop
   "Loop over the sources, scheduling each one in a new thread as its time
   comes."
-  [sources event-chan]
+  [defaults sources event-chan]
   (fn scheduler
     []
     (try
@@ -78,7 +77,7 @@
                     (if (< millis 250)
                       ; Close enough, schedule the source for collection.
                       (do (.remove schedule entry)
-                          (schedule-collection schedule source event-chan))
+                          (schedule-collection schedule defaults source event-chan))
                       ; Next source collection isn't soon enough, so wait.
                       (.wait schedule millis)))
                   ; Nothing scheduled.
@@ -96,8 +95,8 @@
 
 (defn start!
   "Start a new thread to run the scheduling logic."
-  [sources event-chan]
-  (doto (Thread. (scheduler-loop sources event-chan)
+  [defaults sources event-chan]
+  (doto (Thread. (scheduler-loop defaults sources event-chan)
                  "solanum-scheduler")
     (.start)))
 

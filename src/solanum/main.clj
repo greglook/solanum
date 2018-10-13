@@ -9,6 +9,7 @@
     [solanum.channel :as chan]
     [solanum.config :as cfg]
     [solanum.scheduler :as scheduler]
+    [solanum.util :as u]
     [solanum.writer :as writer]))
 
 
@@ -78,9 +79,12 @@
           (println "No outputs defined in configuration files")
           (System/exit 2)))
       (let [events (chan/create 1000)
-            scheduler (scheduler/start! (:sources config) events)
-            writer (writer/start! (:outputs config)
-                                  events
+            defaults (u/merge-attrs (:defaults config)
+                                    (:attribute options)
+                                    {:tags (vec (:tag options))})
+            scheduler (scheduler/start! defaults (:sources config) events)
+            writer (writer/start! events
+                                  (:outputs config)
                                   (:batch-delay options)
                                   (:batch-size options))]
         (try
