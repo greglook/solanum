@@ -1,6 +1,5 @@
 (ns solanum.config
   "Configuration loading functions."
-  (:refer-clojure :exclude [load-file])
   (:require
     [clojure.java.io :as io]
     [clojure.spec.alpha :as s]
@@ -8,7 +7,10 @@
     [clojure.tools.logging :as log]
     [clojure.walk :as walk]
     [solanum.source.core :as source]
+    [solanum.source.test]
+    [solanum.source.uptime]
     [solanum.output.core :as output]
+    [solanum.output.print]
     [solanum.util :as u])
   (:import
     org.yaml.snakeyaml.Yaml))
@@ -42,7 +44,7 @@
     x))
 
 
-(defn- load-file
+(defn- read-file
   "Load some configuration from a file."
   [path]
   (let [file (io/file path)]
@@ -67,35 +69,12 @@
 
 ;; ## Plugin Construction
 
-(defn- type->ns
-  "Convert a type keyword into a symbol for a namespace where that type should
-  be defined."
-  [kind type-key]
-  (let [type-name (name type-key)]
-    (if (str/includes? type-name ".")
-      (symbol type-name)
-      (symbol (str "solanum." kind "." type-name)))))
-
-
-(defn- autoload-type
-  "Attempt to load the namespece where a type of plugin should be defined."
-  [kind type-key]
-  (let [type-ns (type->ns kind type-key)]
-    (when-not (contains? (loaded-libs) type-ns)
-      (try
-        (require type-ns)
-        (catch Exception ex
-          (log/warn "Dynamic loading of" kind "ns" type-ns "failed:"
-                    (.getMessage ex)))))))
-
-
 (defn- configure-source
   "Construct and start a new metrics source from configuration."
   [source-config]
   (when-not (:type source-config)
     (throw (ex-info "Cannot configure source without a type"
                     {:config source-config})))
-  (autoload-type "source" (:type source-config))
   (source/initialize (u/kebabify-keys source-config)))
 
 
@@ -105,7 +84,6 @@
   (when-not (:type output-config)
     (throw (ex-info "Cannot configure output without a type"
                     {:config output-config})))
-  (autoload-type "output" (:type output-config))
   (output/initialize (u/kebabify-keys output-config)))
 
 
@@ -120,6 +98,6 @@
 (defn load-files
   "Load multiple files, merge them together, and initialize the plugins."
   [config-paths]
-  (->> (map load-file config-paths)
+  (->> (map read-file config-paths)
        (reduce merge-config)
        (initialize-plugins)))
