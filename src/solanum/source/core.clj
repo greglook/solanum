@@ -1,6 +1,8 @@
 (ns solanum.source.core
   "Core event source protocol and methods."
   (:require
+    [clojure.java.shell :as sh]
+    [clojure.string :as str]
     [clojure.tools.logging :as log]))
 
 
@@ -25,7 +27,22 @@
 
 ;; ## Utilities
 
-; TODO: determine OS info
+(def os-info
+  "Delayed map with the local operating system's `:name` and `:release`, as
+  returned by `uname`."
+  (delay
+    (try
+      (let [result (sh/sh "uname" "-sr")]
+        (if (zero? (:exit result))
+          (zipmap
+            [:name :release]
+            (-> (:out result)
+                (str/trim-newline)
+                (str/split #" " 2)))
+          (log/warn "Failed to determine operating system information:"
+                    (pr-str (:err result)))))
+      (catch Exception ex
+        (log/error ex "Error while determining operating system information")))))
 
 
 (defn duration-str
