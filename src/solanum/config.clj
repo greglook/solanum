@@ -2,45 +2,58 @@
   "Configuration loading functions."
   (:refer-clojure :exclude [load-file])
   (:require
+    [clojure.java.io :as io]
     [clojure.spec.alpha :as s]
     [clojure.string :as str]
     [clojure.tools.logging :as log]
     [clojure.walk :as walk]
     [solanum.source.core :as source]
     [solanum.output.core :as output]
-    [solanum.util :as u]
-    [yaml.core :as yaml]))
+    [solanum.util :as u])
+  (:import
+    org.yaml.snakeyaml.Yaml))
 
 
 ;; ## File Loading
 
-(defn- type-entry?
-  "True if the value is a key-value tuple with the key `:type`."
-  [x]
-  (and (vector? x)
-       (= 2 (count x))
-       (= :type (first x))))
-
-
-(defn- keywordize-type-tuple
-  "If the given value is a type entry tuple, this returns a new tuple with the
-  value cast to a keyword. Otherwise, returns the original value."
-  [x]
-  (if (type-entry? x)
-    (update x 1 keyword)
-    x))
-
-
-(defn- keywordize-types
-  "Coerce all values of a `:type` key into a keyword in the datastructure."
+(defn- coerce-map
+  "Coerces a Java map into a Clojure map, keywordizing the keys and `:type`
+  values."
   [m]
-  (walk/postwalk keywordize-type-tuple m))
+  (into {}
+        (map (fn coerce-entry
+               [[k v]]
+               (let [k (keyword k)]
+                 [k (if (= :type k)
+                      (keyword v)
+                      v)])))
+        m))
+
+
+(defn- yaml->clj
+  "Coerces a YAML-loaded value into a corresponding Clojure equivalent, where
+  appropriate. Mainly turns collections into their persistent equivalents, and
+  keywordizes map keys and `:type` values."
+  [x]
+  (condp instance? x
+    java.util.Map  (coerce-map x)
+    java.util.Set  (set x)
+    java.util.List (vec x)
+    x))
 
 
 (defn- load-file
   "Load some configuration from a file."
   [path]
-  (keywordize-types (yaml/from-file path)))
+  (let [file (io/file path)]
+    (if (.exists file)
+      (try
+        (let [parser (Yaml.)
+              data (.load parser (slurp file))]
+          (walk/prewalk yaml->clj data))
+          (catch Exception ex
+            (log/error ex "Failed to load configuration from" path)))
+      (log/warn "Can't load configuration from nonexistent file" path))))
 
 
 (defn- merge-config

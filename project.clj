@@ -11,7 +11,7 @@
   [[org.clojure/clojure "1.9.0"]
    [org.clojure/tools.cli "0.4.1"]
    [org.clojure/tools.logging "0.4.1"]
-   [io.forward/yaml "1.0.9"]
+   [org.yaml/snakeyaml "1.23"]
    [ch.qos.logback/logback-classic "1.2.3"]
    [riemann-clojure-client "0.5.0"]]
 
