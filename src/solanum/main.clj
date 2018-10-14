@@ -8,6 +8,7 @@
     [clojure.tools.logging :as log]
     [solanum.channel :as chan]
     [solanum.config :as cfg]
+    [solanum.output.core :as output]
     [solanum.scheduler :as scheduler]
     [solanum.util :as u]
     [solanum.writer :as writer]))
@@ -50,7 +51,62 @@
    [nil "--batch-size COUNT" "Size threshold for sending a batch of events"
     :parse-fn #(Integer/parseInt %)
     :default 50]
+   [nil "--test" "Run each source once, record the events, then exit."]
    ["-h" "--help"]])
+
+
+(defn- register-cleanup!
+  "Register a shutdown hook to cleanly terminate the process."
+  [scheduler channel writer]
+  ; TODO: this does run on SIGINT, but the app still exits 130
+  (.addShutdownHook
+    (Runtime/getRuntime)
+    (Thread. (fn cleanup
+               []
+               (log/info "Shutting down...")
+               (scheduler/stop! scheduler 1000)
+               (let [remaining (chan/wait-drained channel 1000)]
+                 (if (zero? remaining)
+                   (log/info "Drained channel events")
+                   (log/warn remaining "events remaining in channel")))
+               (writer/stop! writer 1000)
+               (log/info "Done"))
+             "solanum-shutdown")))
+
+
+(defn- run-daemon
+  "Run the process in daemon mode."
+  [options config]
+  (let [channel (chan/create 1000)
+        defaults (u/merge-attrs (:defaults config)
+                                (:attribute options)
+                                {:tags (vec (:tag options))})
+        scheduler (scheduler/start! defaults (:sources config) channel)
+        writer (writer/start! channel
+                              (:outputs config)
+                              (:batch-delay options)
+                              (:batch-size options))]
+    ; Register cleanup work.
+    (register-cleanup! scheduler channel writer)
+    ; Block while the threads do their thing.
+    @(promise)))
+
+
+(defn- run-test
+  "Run the process in test mode."
+  [options config]
+  (let [defaults (u/merge-attrs (:defaults config)
+                                (:attribute options)
+                                {:tags (vec (:tag options))})
+        events (into []
+                     (mapcat (partial scheduler/collect-source defaults))
+                     (:sources config))]
+    (doseq [output (:outputs config)]
+      (try
+        (output/write-events output events)
+        (catch Exception ex
+          (log/error ex "Error writing events to" (:type output) "output"))))
+    (println "Collected" (count events) "events")))
 
 
 (defn -main
@@ -78,32 +134,9 @@
         (binding [*out* *err*]
           (println "No outputs defined in configuration files")
           (System/exit 2)))
-      (let [events (chan/create 1000)
-            defaults (u/merge-attrs (:defaults config)
-                                    (:attribute options)
-                                    {:tags (vec (:tag options))})
-            scheduler (scheduler/start! defaults (:sources config) events)
-            writer (writer/start! events
-                                  (:outputs config)
-                                  (:batch-delay options)
-                                  (:batch-size options))]
-        ; Register cleanup work.
-        ; TODO: this does run on SIGINT, but the app still exits 130
-        (.addShutdownHook
-          (Runtime/getRuntime)
-          (Thread. (fn cleanup
-                     []
-                     (log/info "Shutting down...")
-                     (scheduler/stop! scheduler 1000)
-                     (let [remaining (chan/wait-drained events 1000)]
-                       (if (zero? remaining)
-                         (log/info "Drained channel events")
-                         (log/warn remaining "events remaining in channel")))
-                     (writer/stop! writer 1000)
-                     (log/info "Done"))
-                   "solanum-shutdown"))
-        ; Block on something while the threads do their thing.
-        @(promise)))
+      (if (:test options)
+        (run-test options config)
+        (run-daemon options config)))
     ; TODO: thread never gets here.
     (shutdown-agents)
     (System/exit 0)))

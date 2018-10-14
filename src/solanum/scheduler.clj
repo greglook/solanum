@@ -35,14 +35,13 @@
     queue))
 
 
-(defn- collect-source
+(defn collect-source
   "Collect events from a source and put them onto the event channel."
-  [defaults source event-chan]
+  [defaults source]
   (try
     (log/debug "Collecting events from" (pr-str source))
-    (->> (source/collect-events source)
-         (map (partial u/merge-attrs defaults (:attributes source)))
-         (run! (partial chan/put! event-chan)))
+    (map (partial u/merge-attrs defaults (:attributes source))
+         (source/collect-events source))
     (catch Exception ex
       (log/warn ex "Failure collecting from" (:type source) "source")
       ; TODO: send an event?
@@ -53,7 +52,8 @@
   "Launch a new thread to collect metrics from the source."
   [^Queue schedule defaults source event-chan]
   (future
-    (collect-source defaults source event-chan)
+    (run! (partial chan/put! event-chan)
+          (collect-source defaults source))
     (locking schedule
       (.add schedule [(next-run source) source])
       (.notifyAll schedule))))

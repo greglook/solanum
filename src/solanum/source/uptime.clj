@@ -1,5 +1,5 @@
 (ns solanum.source.uptime
-  "A metrics source that measures the uptime of a host."
+  "Metrics source that measures the uptime of a host."
   (:require
     [clojure.string :as str]
     [solanum.source.core :as source])
