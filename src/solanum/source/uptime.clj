@@ -1,4 +1,5 @@
 (ns solanum.source.uptime
+  "A metrics source that measures the uptime of a host."
   (:require
     [clojure.string :as str]
     [solanum.source.core :as source])
@@ -17,8 +18,7 @@
           seconds (Double/parseDouble (first (str/split uptime #" ")))]
       [{:service "uptime"
         :metric seconds
-        ; TODO: human format duration
-        :description (str "Up for " seconds)}])))
+        :description (str "Up for " (source/duration-str seconds))}])))
 
 
 (defmethod source/initialize :uptime

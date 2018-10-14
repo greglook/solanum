@@ -20,3 +20,50 @@
 (defmethod initialize :default
   [config]
   (log/error "No source definition for type" (pr-str (:type config))))
+
+
+
+;; ## Utilities
+
+; TODO: determine OS info
+
+
+(defn duration-str
+  "Convert a duration in seconds into a human-friendly representation."
+  [duration]
+  (let [days (int (/ duration 86400))
+        hours (int (/ (mod duration 86400) 3600))
+        minutes (int (/ (mod duration 3600) 60))
+        seconds (int (mod duration 60))
+        hms (format "%02d:%02d:%02d" hours minutes seconds)]
+    (if (pos? days)
+      (str days " days, " hms)
+      hms)))
+
+
+(defn state-over
+  "Calculate the state of a metric by comparing it to the given thresholds. The
+  metric is compared to each threshold in turn, largest to smallest. The first
+  threshold the metric is larger than is returned, or the 'min-sate' is
+  returned."
+  [min-state thresholds metric]
+  (loop [thresholds (sort-by val (comp - compare) thresholds)]
+    (if-let [[state threshold] (first thresholds)]
+      (if (<= threshold metric)
+        state
+        (recur (next thresholds)))
+      min-state)))
+
+
+(defn state-under
+  "Calculate the state of a metric by comparing it to the given thresholds. The
+  metric is compared to each threshold in turn, smallest to largest. The first
+  threshold the metric is smaller than is returned, or the 'max-sate' is
+  returned."
+  [max-state thresholds metric]
+  (loop [thresholds (sort-by val thresholds)]
+    (if-let [[state threshold] (first thresholds)]
+      (if (< metric threshold)
+        state
+        (recur (next thresholds)))
+      max-state)))
