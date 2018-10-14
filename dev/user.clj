@@ -14,37 +14,6 @@
     [solanum.writer :as writer]))
 
 
-#_ ; Example config
-{:defaults {:tags ["solanum"]
-            :ttl 60}
- :outputs [{:type "print"}
-           {:type "riemann"
-            :host "riemann.example.com"
-            :port 5555}]
- :sources [{:type "cpu"
-            :per-core false
-            :detailed false
-            :usage-states {:critical 0.9
-                           :warning 0.8}}
-           {:type "uptime"
-            :period 60}
-           {:type "load"
-            :load-states {:critical 8
-                          :warning 4}}
-           {:type "memory"}
-           {:type "diskstats"
-            :detailed false
-            :devices ["sda"]}
-           {:type "network"
-            :detailed false
-            :interfaces ["wlan0"]}
-           {:type "certificate"
-            :host "www.google.com"
-            :expiry-states {:critical 30 :warning 180}
-            :attributes {:ttl 3600}
-            :period 300}]}
-
-
 (def config nil)
 (def channel nil)
 (def scheduler nil)

@@ -88,7 +88,7 @@
                                   (:batch-delay options)
                                   (:batch-size options))]
         ; Register cleanup work.
-        ; FIXME: still doesn't handle SIGINT
+        ; TODO: this does run on SIGINT, but the app still exits 130
         (.addShutdownHook
           (Runtime/getRuntime)
           (Thread. (fn cleanup
@@ -104,5 +104,6 @@
                    "solanum-shutdown"))
         ; Block on something while the threads do their thing.
         @(promise)))
+    ; TODO: thread never gets here.
     (shutdown-agents)
     (System/exit 0)))
