@@ -9,6 +9,7 @@
     [solanum.source.core :as source]
     [solanum.source.cpu]
     [solanum.source.load]
+    [solanum.source.memory]
     [solanum.source.test]
     [solanum.source.uptime]
     [solanum.output.core :as output]
