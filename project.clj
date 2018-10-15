@@ -15,6 +15,12 @@
    [ch.qos.logback/logback-classic "1.2.3"]
    [riemann-clojure-client "0.5.0"]]
 
+  :hiera
+  {:cluster-depth 2
+   :vertical false
+   :show-external false
+   :ignore-ns #{solanum.config}}
+
   :profiles
   {:repl
    {:source-paths ["dev"]
