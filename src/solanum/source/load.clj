@@ -17,15 +17,15 @@
 (defn- measure-linux-load
   "Measure the process load on a linux system."
   []
-  (let [loadavg (-> (FileReader. "/proc/loadavg")
-                    (slurp)
-                    (str/trim-newline))
-        [load-1m load-5m load-15m run-frac last-pid] (str/split loadavg #" +")
+  (let [line (-> (FileReader. "/proc/loadavg")
+                 (slurp)
+                 (str/trim-newline))
+        [load-1m load-5m load-15m run-frac last-pid] (str/split line #" +")
         [running total] (str/split run-frac #"/" 2)]
-    {:load (mapv #(Double/parseDouble %) [load-1m load-5m load-15m])
-     :total total
-     :running running
-     :info loadavg}))
+    {:info line
+     :load (mapv #(Double/parseDouble %) [load-1m load-5m load-15m])
+     :total (Long/parseLong total)
+     :running (Long/parseLong running)}))
 
 
 (defn- measure-darwin-load
