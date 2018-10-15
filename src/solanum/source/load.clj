@@ -75,7 +75,7 @@
         (when-let [[load-1m load-5m load-15m] (:load processes)]
           [{:service "process load"
             :metric (double load-1m)
-            :state (source/state-over (:load-states this) load-1m :ok)
+            :state (source/state-over load-states load-1m :ok)
             :description (format "Load averages: %.2f 1m, %.2f 5m, %.2f 15m"
                                  load-1m load-5m load-15m)}])
         (when-let [total (:total processes)]

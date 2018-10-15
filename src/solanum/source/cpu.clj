@@ -104,7 +104,7 @@
 ;; ## CPU Source
 
 (defrecord CPUSource
-  [mode per-core per-state tracker]
+  [mode per-core per-state usage-states tracker]
 
   source/Source
 
@@ -119,7 +119,7 @@
           ; TODO: add process listing to this event
           [{:service "cpu usage"
             :metric pct
-            :state (source/state-over (:usage-states this) pct :ok)}])
+            :state (source/state-over usage-states pct :ok)}])
         ; Overall per-state metrics.
         (when per-state
           (map
@@ -154,7 +154,7 @@
 (defmethod source/initialize :cpu
   [config]
   (-> config
-      (select-keys [:type :period :per-core :per-state])
+      (select-keys [:type :period :per-core :per-state :usage-states])
       (update :per-core boolean)
       (update :per-state boolean)
       (assoc :mode (source/detect-mode :cpu supported-modes
