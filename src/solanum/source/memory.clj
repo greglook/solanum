@@ -1,12 +1,12 @@
 (ns solanum.source.memory
   "Metrics source that measures system memory usage."
   (:require
-    [clojure.java.shell :as shell]
     [clojure.string :as str]
     [clojure.tools.logging :as log]
-    [solanum.source.core :as source])
-  (:import
-    java.io.FileReader))
+    [solanum.source.core :as source]
+    [solanum.system.core :as sys]
+    [solanum.system.darwin :as darwin]
+    [solanum.system.linux :as linux]))
 
 
 (def supported-modes
@@ -17,9 +17,7 @@
 (defn- measure-linux-memory
   "Measure the memory usage on a linux system."
   []
-  (let [lines (-> (FileReader. "/proc/meminfo")
-                  (slurp)
-                  (str/split #"\n"))
+  (let [lines (linux/read-proc-lines "/proc/meminfo")
         info (into {}
                    (map (fn parse-line
                           [line]
@@ -47,22 +45,18 @@
 (defn- measure-darwin-memory
   "Measure the memory usage on an OS X system."
   []
-  (let [result (shell/sh "top" "-l" "1")]
-    (if (zero? (:exit result))
-      (when-let [mem-line (->> (str/split (:out result) #"\n")
-                               (take 10)
-                               (filter (partial re-matches #"PhysMem: (\d+)([BKMGT]) used \((\d+)([BKMGT]) wired\), (\d+)([BKMGT]) unused"))
-                               (first))]
-        (let [byte-scale (fn byte-scale
-                           [[amount unit]]
-                           (let [exp (* 10 (str/index-of "BKMGT" unit))
-                                 scale (bit-shift-left 1 exp)]
-                             (* (Long/parseLong amount) scale)))
-              [used wired unused] (->> (rest mem-line)
-                                       (partition 2)
-                                       (map byte-scale))]
-          {:usage (double (/ used (+ used unused)))}))
-      (log/warn "Failed to measure process load:" (pr-str (:err result))))))
+  (when-let [mem-line (->> (:lines (darwin/read-top))
+                           (filter (partial re-matches #"PhysMem: (\d+)([BKMGT]) used \((\d+)([BKMGT]) wired\), (\d+)([BKMGT]) unused"))
+                           (first))]
+    (let [byte-scale (fn byte-scale
+                       [[amount unit]]
+                       (let [exp (* 10 (str/index-of "BKMGT" unit))
+                             scale (bit-shift-left 1 exp)]
+                         (* (Long/parseLong amount) scale)))
+          [used wired unused] (->> (rest mem-line)
+                                   (partition 2)
+                                   (map byte-scale))]
+      {:usage (double (/ used (+ used unused)))})))
 
 
 
@@ -99,6 +93,5 @@
   [config]
   (-> config
       (select-keys [:type :period :usage-states :swap-states])
-      (assoc :mode (source/detect-mode :memory supported-modes
-                                       (:mode config) :linux))
+      (assoc :mode (sys/detect :memory supported-modes (:mode config) :linux))
       (map->MemorySource)))

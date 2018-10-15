@@ -1,13 +1,12 @@
 (ns solanum.source.cpu
   "Metrics source that measures the CPU utilization of a host."
   (:require
-    [clojure.java.io :as io]
-    [clojure.java.shell :as shell]
     [clojure.string :as str]
     [clojure.tools.logging :as log]
-    [solanum.source.core :as source])
-  (:import
-    java.io.FileReader))
+    [solanum.source.core :as source]
+    [solanum.system.core :as sys]
+    [solanum.system.darwin :as darwin]
+    [solanum.system.linux :as linux]))
 
 
 (def supported-modes
@@ -23,7 +22,7 @@
   counts."
   []
   (->>
-    (line-seq (io/reader (FileReader. "/proc/stat")))
+    (linux/read-proc-lines "/proc/stat")
     (take-while #(str/starts-with? % "cpu"))
     (reduce
       (fn parse-info
@@ -83,21 +82,17 @@
   "Measure CPU utilization on Darwin (OS X) systems using `top`."
   []
   ; get process list with `ps -eo pcpu,pid,comm | sort -nrb -k1 | head -10`
-  (let [result (shell/sh "top" "-l" "1")]
-    (if (zero? (:exit result))
-      (let [head-lines (take 10 (str/split (:out result) #"\n"))
-            cpu-line (first (filter #(str/starts-with? % "CPU usage:")
-                                    head-lines))]
-        (if cpu-line
-          {"cpu"
-           (into {}
-                 (map (fn [[_ pct kind]]
-                        [(keyword kind) (/ (Double/parseDouble pct) 100.0)]))
-                 (re-seq #" (\d+\.\d+)% (\w+),?" cpu-line))}
-          (log/warn "Couldn't find CPU usage information in top header:"
-                    (pr-str head-lines))))
-      (log/warn "Failed to measure CPU usage with top:"
-                (pr-str (:err result))))))
+  (let [head-lines (:lines (darwin/read-top))
+        cpu-line (first (filter #(str/starts-with? % "CPU usage:")
+                                head-lines))]
+    (if cpu-line
+      {"cpu"
+       (into {}
+             (map (fn [[_ pct kind]]
+                    [(keyword kind) (/ (Double/parseDouble pct) 100.0)]))
+             (re-seq #" (\d+\.\d+)% (\w+),?" cpu-line))}
+      (log/warn "Couldn't find CPU usage information in top header:"
+                (pr-str head-lines)))))
 
 
 
@@ -157,7 +152,6 @@
       (select-keys [:type :period :per-core :per-state :usage-states])
       (update :per-core boolean)
       (update :per-state boolean)
-      (assoc :mode (source/detect-mode :cpu supported-modes
-                                       (:mode config) :linux)
+      (assoc :mode (sys/detect :cpu supported-modes (:mode config) :linux)
              :tracker (atom {}))
       (map->CPUSource)))

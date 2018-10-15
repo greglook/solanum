@@ -4,9 +4,9 @@
     [clojure.java.shell :as shell]
     [clojure.string :as str]
     [clojure.tools.logging :as log]
-    [solanum.source.core :as source])
-  (:import
-    java.io.FileReader))
+    [solanum.source.core :as source]
+    [solanum.system.core :as sys]
+    [solanum.system.linux :as linux]))
 
 
 (def supported-modes
@@ -17,7 +17,7 @@
 (defn- measure-linux-uptime
   "Measure the number of seconds the Linux system has been running."
   []
-  (let [uptime (slurp (FileReader. "/proc/uptime"))]
+  (let [uptime (linux/read-proc-file "/proc/uptime")]
     (Double/parseDouble (first (str/split uptime #" +")))))
 
 
@@ -58,6 +58,5 @@
   [config]
   (-> config
       (select-keys [:type :period])
-      (assoc :mode (source/detect-mode :uptime supported-modes
-                                       (:mode config) :linux))
+      (assoc :mode (sys/detect :uptime supported-modes (:mode config) :linux))
       (map->UptimeSource)))

@@ -1,12 +1,12 @@
 (ns solanum.source.load
   "Metrics source that measures process load."
   (:require
-    [clojure.java.shell :as shell]
     [clojure.string :as str]
     [clojure.tools.logging :as log]
-    [solanum.source.core :as source])
-  (:import
-    java.io.FileReader))
+    [solanum.source.core :as source]
+    [solanum.system.core :as sys]
+    [solanum.system.darwin :as darwin]
+    [solanum.system.linux :as linux]))
 
 
 (def supported-modes
@@ -17,9 +17,7 @@
 (defn- measure-linux-load
   "Measure the process load on a linux system."
   []
-  (let [line (-> (FileReader. "/proc/loadavg")
-                 (slurp)
-                 (str/trim-newline))
+  (let [line (linux/read-proc-file "/proc/loadavg")
         [load-1m load-5m load-15m run-frac last-pid] (str/split line #" +")
         [running total] (str/split run-frac #"/" 2)]
     {:info line
@@ -31,31 +29,27 @@
 (defn- measure-darwin-load
   "Measure the process load on an OS X system."
   []
-  (let [result (shell/sh "top" "-l" "1")]
-    (if (zero? (:exit result))
-      (->> (str/split (:out result) #"\n")
-           (take 10)
-           (reduce
-             (fn [data line]
-               ; Processes: 284 total, 4 running, 10 stuck, 270 sleeping, 1572 threads
-               ; Load Avg: 2.03, 2.00, 2.07
-               (cond
-                 (str/starts-with? line "Processes: ")
-                 (let [[_ total running] (re-matches #"Processes: (\d+) total, (\d+) running, .+" line)]
-                   (assoc data
-                          :info line
-                          :total (Long/parseLong total)
-                          :running (Long/parseLong running)))
+  (reduce
+    (fn [data line]
+      ; Processes: 284 total, 4 running, 10 stuck, 270 sleeping, 1572 threads
+      ; Load Avg: 2.03, 2.00, 2.07
+      (cond
+        (str/starts-with? line "Processes: ")
+        (let [[_ total running] (re-matches #"Processes: (\d+) total, (\d+) running, .+" line)]
+          (assoc data
+                 :info line
+                 :total (Long/parseLong total)
+                 :running (Long/parseLong running)))
 
-                 (str/starts-with? line "Load Avg: ")
-                 (let [load-nums (->> (str/split (subs line 10) #", ")
-                                      (reverse)
-                                      (mapv #(Double/parseDouble %)))]
-                   (assoc data :load load-nums))
+        (str/starts-with? line "Load Avg: ")
+        (let [load-nums (->> (str/split (subs line 10) #", ")
+                             (reverse)
+                             (mapv #(Double/parseDouble %)))]
+          (assoc data :load load-nums))
 
-                 :else data))
-             {}))
-      (log/warn "Failed to measure process load:" (pr-str (:err result))))))
+        :else data))
+    {}
+    (:lines (darwin/read-top))))
 
 
 
@@ -91,6 +85,5 @@
   [config]
   (-> config
       (select-keys [:type :period :load-states])
-      (assoc :mode (source/detect-mode :load supported-modes
-                                       (:mode config) :linux))
+      (assoc :mode (sys/detect :load supported-modes (:mode config) :linux))
       (map->LoadSource)))
