@@ -2,6 +2,7 @@
   "Custom repl customization for local development."
   (:require
     [clojure.java.io :as io]
+    [clojure.java.shell :as shell]
     [clojure.repl :refer :all]
     [clojure.set :as set]
     [clojure.stacktrace :refer [print-cause-trace]]
@@ -22,12 +23,18 @@
 (def writer nil)
 
 
+(defn reload-config
+  "Reload the configuration from the local file."
+  []
+  (alter-var-root #'config (constantly (cfg/load-files ["config.yml"]))))
+
+
 (defn collect-sources
   "Test all configured sources by collecting from them once. Returns the
   sequence of collected metric events."
   []
   (when-not config
-    (alter-var-root #'config (constantly (cfg/load-files ["config.yml"]))))
+    (reload-config))
   (let [defaults (:defaults config)]
     (into []
           (mapcat (partial scheduler/collect-source defaults))
@@ -36,17 +43,15 @@
 
 (defn start!
   "Start running the scheduler and writer threads."
-  ([]
-   (start! (cfg/load-files ["config.yml"])))
-  ([config]
-   (alter-var-root #'config (constantly config))
-   (when (or channel scheduler writer)
-     (throw (IllegalStateException.
-              "There are already running resources, call `stop!` first.")))
-   (alter-var-root #'channel (constantly (chan/create 1000)))
-   (alter-var-root #'scheduler (constantly (scheduler/start! {} (:sources config) channel)))
-   (alter-var-root #'writer (constantly (writer/start! channel (:outputs config) 100 10)))
-   :started))
+  []
+  (when (or channel scheduler writer)
+    (throw (IllegalStateException.
+             "There are already running resources, call `stop!` first.")))
+  (reload-config)
+  (alter-var-root #'channel (constantly (chan/create 1000)))
+  (alter-var-root #'scheduler (constantly (scheduler/start! {} (:sources config) channel)))
+  (alter-var-root #'writer (constantly (writer/start! channel (:outputs config) 100 10)))
+  :started)
 
 
 (defn stop!
