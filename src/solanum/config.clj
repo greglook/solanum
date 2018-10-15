@@ -12,6 +12,7 @@
     [solanum.source.uptime]
     [solanum.output.core :as output]
     [solanum.output.print]
+    [solanum.output.riemann]
     [solanum.util :as u])
   (:import
     org.yaml.snakeyaml.Yaml))
