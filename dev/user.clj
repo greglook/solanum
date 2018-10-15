@@ -11,6 +11,8 @@
     [solanum.channel :as chan]
     [solanum.config :as cfg]
     [solanum.scheduler :as scheduler]
+    [solanum.source.core :as source]
+    [solanum.output.core :as output]
     [solanum.writer :as writer]))
 
 

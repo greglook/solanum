@@ -1,7 +1,7 @@
 (ns solanum.source.core
   "Core event source protocol and methods."
   (:require
-    [clojure.java.shell :as sh]
+    [clojure.java.shell :as shell]
     [clojure.string :as str]
     [clojure.tools.logging :as log]))
 
@@ -32,7 +32,7 @@
   returned by `uname`."
   (delay
     (try
-      (let [result (sh/sh "uname" "-sr")]
+      (let [result (shell/sh "uname" "-sr")]
         (if (zero? (:exit result))
           (zipmap
             [:name :release]

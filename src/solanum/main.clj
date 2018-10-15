@@ -2,7 +2,7 @@
   "Main entry for the daemon."
   (:gen-class)
   (:require
-    [clojure.java.shell :as sh]
+    [clojure.java.shell :as shell]
     [clojure.string :as str]
     [clojure.tools.cli :as cli]
     [clojure.tools.logging :as log]
@@ -17,7 +17,7 @@
 (defn- load-hostname
   "Look up the name of the local host."
   [ctx]
-  (let [result (sh/sh "hostname")]
+  (let [result (shell/sh "hostname")]
     (if (zero? (:exit result))
       (str/trim-newline (:out result))
       (log/warn "Failed to resolve local hostname:" (pr-str (:err result))))))
