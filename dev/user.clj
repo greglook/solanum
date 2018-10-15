@@ -22,6 +22,18 @@
 (def writer nil)
 
 
+(defn collect-sources
+  "Test all configured sources by collecting from them once. Returns the
+  sequence of collected metric events."
+  []
+  (when-not config
+    (alter-var-root #'config (constantly (cfg/load-files ["config.yml"]))))
+  (let [defaults (:defaults config)]
+    (into []
+          (mapcat (partial scheduler/collect-source defaults))
+          (:sources config))))
+
+
 (defn start!
   "Start running the scheduler and writer threads."
   ([]
