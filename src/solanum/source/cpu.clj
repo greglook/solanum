@@ -15,18 +15,6 @@
   #{:linux :darwin})
 
 
-(defn- detect-mode
-  "Determine what mode to run the source in for compatibility with the
-  local operating system."
-  [requested]
-  (let [mode (or requested
-                 (keyword (str/lower-case (:name @source/os-info))))]
-    (if (contains? supported-modes mode)
-      mode
-      (do (log/warn "Unknown CPU source mode" (pr-str mode) "- falling back to :linux")
-          :linux))))
-
-
 ;; ### Linux
 
 (defn- stat-jiffies
@@ -127,8 +115,8 @@
                   :darwin (measure-darwin-cpu))]
       (concat
         ; Overall usage stat.
-        (when-let [pct (some->> (get-in usage ["cpu" :idle])
-                                (- 1.0))]
+        (when-let [pct (some->> (get-in usage ["cpu" :idle]) (- 1.0))]
+          ; TODO: add process listing to this event
           [{:service "cpu usage"
             :metric pct
             :state (source/state-over (:usage-states this) pct :ok)}])
@@ -169,6 +157,7 @@
       (select-keys [:type :period :per-core :per-state])
       (update :per-core boolean)
       (update :per-state boolean)
-      (assoc :mode (detect-mode (:mode config))
+      (assoc :mode (source/detect-mode :cpu supported-modes
+                                       (:mode config) :linux)
              :tracker (atom {}))
       (map->CPUSource)))
