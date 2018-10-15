@@ -51,7 +51,13 @@
    [nil "--batch-size COUNT" "Size threshold for sending a batch of events"
     :parse-fn #(Integer/parseInt %)
     :default 50]
-   [nil "--test" "Run each source once, record the events, then exit."]
+   [nil "--test" "Run each source a fixed number of times, record the events, then exit."]
+   [nil "--test-count N" "When in test mode, collect each source N times."
+    :parse-fn #(Integer/parseInt %)
+    :default 1]
+   [nil "--test-delay SECONDS" "When in test mode, sleep this long between collections."
+    :parse-fn #(Integer/parseInt %)
+    :default 1]
    ["-h" "--help"]])
 
 
@@ -97,16 +103,20 @@
   [options config]
   (let [defaults (u/merge-attrs (:defaults config)
                                 (:attribute options)
-                                {:tags (vec (:tag options))})
-        events (into []
-                     (mapcat (partial scheduler/collect-source defaults))
-                     (:sources config))]
-    (doseq [output (:outputs config)]
-      (try
-        (output/write-events output events)
-        (catch Exception ex
-          (log/error ex "Error writing events to" (:type output) "output"))))
-    (println "Collected" (count events) "events")))
+                                {:tags (vec (:tag options))})]
+    (loop [n (dec (:test-count options))]
+      (let [events (into []
+                         (mapcat (partial scheduler/collect-source defaults))
+                         (:sources config))]
+        (doseq [output (:outputs config)]
+          (try
+            (output/write-events output events)
+            (catch Exception ex
+              (log/error ex "Error writing events to" (:type output) "output"))))
+        (println "Collected" (count events) "events")
+        (when (pos? n)
+          (Thread/sleep (* 1000 (:test-delay options)))
+          (recur (dec n)))))))
 
 
 (defn -main
