@@ -6,7 +6,7 @@
     [solanum.output.core :as output]))
 
 
-(defn- write-output-batch
+(defn write-outputs
   "Write a batch of events to a collection of outputs."
   [outputs events]
   (when (seq events)
@@ -38,7 +38,7 @@
             (if (or (<= max-size (count batch))
                     (<= max-delay (- (System/nanoTime) last-send)))
               ; Need to send off the batch.
-              (do (write-output-batch outputs batch)
+              (do (write-outputs outputs batch)
                   (recur (System/nanoTime) []))
               ; Keep aggregating.
               (recur last-send batch)))))

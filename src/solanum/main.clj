@@ -8,7 +8,6 @@
     [clojure.tools.logging :as log]
     [solanum.channel :as chan]
     [solanum.config :as cfg]
-    [solanum.output.core :as output]
     [solanum.scheduler :as scheduler]
     [solanum.util :as u]
     [solanum.writer :as writer]))
@@ -108,12 +107,8 @@
       (let [events (into []
                          (mapcat (partial scheduler/collect-source defaults))
                          (:sources config))]
-        (doseq [output (:outputs config)]
-          (try
-            (output/write-events output events)
-            (catch Exception ex
-              (log/error ex "Error writing events to" (:type output) "output"))))
         (println "Collected" (count events) "events")
+        (writer/write-outputs (:outputs config) events)
         (when (pos? n)
           (Thread/sleep (* 1000 (:test-delay options)))
           (recur (dec n)))))))
