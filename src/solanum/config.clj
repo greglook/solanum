@@ -7,6 +7,7 @@
     [clojure.tools.logging :as log]
     [clojure.walk :as walk]
     [solanum.source.core :as source]
+    [solanum.source.cpu]
     [solanum.source.test]
     [solanum.source.uptime]
     [solanum.output.core :as output]
