@@ -36,24 +36,6 @@
       {})))
 
 
-(defn- diff-core-states
-  "Calculate the difference in the number of jiffies for each core state,
-  compared to some previously-captured data."
-  [prev data]
-  (into {}
-        (map
-          (fn diff-core
-            [[core states]]
-            [core (reduce
-                    (fn diff-states
-                      [diff [state jiffies]]
-                      (if-let [last-val (get-in prev [core state])]
-                        (assoc diff state (- jiffies last-val))
-                        diff))
-                    {} states)]))
-        data))
-
-
 (defn- relative-vals
   "Update the values in a map so they represent their fraction of the total of
   all values in the original map."
@@ -73,7 +55,7 @@
     (when prev
       (into {}
             (map (juxt key (comp relative-vals val)))
-            (diff-core-states prev data)))))
+            (source/diff-tracker prev data)))))
 
 
 ;; ### Darwin

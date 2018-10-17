@@ -82,3 +82,32 @@
         state
         (recur (next thresholds)))
       max-state)))
+
+
+(defn diff-counters
+  "Calculate the _difference_ between two maps of monotonically-increasing
+  counter values. Expects `then` and `now` to be maps of counter keys to
+  numeric values. Returns a map with each key present in both inputs with the
+  difference as the value."
+  [then now]
+  (into {}
+        (keep
+          (fn diff
+            [k]
+            (let [a (get then k)
+                  b (get now k)]
+              (when (and a b)
+                [k (- b a)]))))
+        (keys now)))
+
+
+(defn diff-tracker
+  "Calculate the difference between several entities in a tracker map,
+  identified by a key pointing to a map of counter values. Passes each entity's
+  counters to `diff-counters` for processing."
+  [then now]
+  (into {}
+        (map (fn diff-entity
+               [[id counters]]
+               [id (diff-counters (get then id) counters)]))
+        now))

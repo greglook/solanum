@@ -50,21 +50,6 @@
         (linux/read-proc-lines "/proc/net/dev")))
 
 
-(defn- diff-net-data
-  "Return a map with the difference of the values for all keys present in both
-  maps."
-  [then now]
-  (into {}
-        (keep
-          (fn diff
-            [k]
-            (let [a (get then k)
-                  b (get now k)]
-              (when (and a b)
-                [k (- b a)]))))
-        (keys now)))
-
-
 (defn- measure-linux-network
   "Measure network IO on Linux systems by reading the proc subsystem."
   [tracker]
@@ -72,11 +57,7 @@
         prev @tracker]
     (reset! tracker data)
     (when prev
-      (into {}
-            (map (fn diff-iface
-                   [[iface counters]]
-                   [iface (diff-net-data (get prev iface) counters)]))
-            data))))
+      (source/diff-tracker prev data))))
 
 
 
