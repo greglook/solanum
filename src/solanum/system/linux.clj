@@ -9,7 +9,7 @@
 (defn read-proc-file
   "Read a file from the `/proc` subsystem. Returns the file contents."
   [path]
-  (-> (FileReader. path)
+  (-> (FileReader. (str path))
       (slurp)
       (str/trim-newline)))
 

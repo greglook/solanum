@@ -8,6 +8,7 @@
     [clojure.walk :as walk]
     [solanum.source.core :as source]
     [solanum.source.cpu]
+    [solanum.source.disk-space]
     [solanum.source.disk-stats]
     [solanum.source.load]
     [solanum.source.memory]

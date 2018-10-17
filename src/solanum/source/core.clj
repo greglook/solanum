@@ -25,8 +25,20 @@
 
 ;; ## Event Helpers
 
+(defn byte-str
+  "Format a byte size into a human-friendly string representation."
+  [size]
+  (loop [suffixes ["B" "KB" "MB" "GB" "TB" "PB"]
+         size size]
+    (if (and (< 1024 size) (next suffixes))
+      (recur (next suffixes) (/ size 1024))
+      (if (integer? size)
+        (format "%d %s" size (first suffixes))
+        (format "%.1f %s" (double size) (first suffixes))))))
+
+
 (defn duration-str
-  "Convert a duration in seconds into a human-friendly representation."
+  "Format a duration in seconds into a human-friendly string representation."
   [duration]
   (let [days (int (/ duration 86400))
         hours (int (/ (mod duration 86400) 3600))
