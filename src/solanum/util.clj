@@ -34,13 +34,7 @@
   (into (vec a) b))
 
 
-(defn kebabify
+(defn keybabify
   "Replace underscores in a keyword with hyphens. Only uses the name portion."
   [k]
   (keyword (str/replace (name k) "_" "-")))
-
-
-(defn kebabify-keys
-  "Kebabify all keywords in a map."
-  [m]
-  (into {} (map (juxt (comp kebabify key) val)) m))

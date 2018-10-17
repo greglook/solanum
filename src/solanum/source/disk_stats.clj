@@ -1,4 +1,4 @@
-(ns solanum.source.diskstats
+(ns solanum.source.disk-stats
   "Metrics source that measures the IO utilization of a host's block devices."
   (:require
     [clojure.string :as str]
@@ -54,7 +54,7 @@
 
 
 
-;; ## Diskstats Source
+;; ## Disk Stats Source
 
 (defrecord DiskStatsSource
   [mode tracker devices detailed]
@@ -77,7 +77,7 @@
                     (fn [[service stat detailed-metric f]]
                       (when-let [metric (and (or detailed (not detailed-metric))
                                              (get diffs stat))]
-                        {:service (str "diskstats " service)
+                        {:service (str "disk-stats " service)
                          :metric (if f (f metric) metric)
                          :device device}))
                     [["read bytes" :read-sectors false (partial * 512)]
@@ -94,12 +94,12 @@
             info))))
 
 
-(defmethod source/initialize :diskstats
+(defmethod source/initialize :disk-stats
   [config]
   (-> config
       (select-keys [:type :period :devices :detailed])
       (update :detailed boolean)
       (update :devices set)
-      (assoc :mode (sys/detect :diskstats supported-modes (:mode config) :linux)
+      (assoc :mode (sys/detect :disk-stats supported-modes (:mode config) :linux)
              :tracker (atom {}))
       (map->DiskStatsSource)))

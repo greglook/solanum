@@ -8,7 +8,7 @@
     [clojure.walk :as walk]
     [solanum.source.core :as source]
     [solanum.source.cpu]
-    [solanum.source.diskstats]
+    [solanum.source.disk-stats]
     [solanum.source.load]
     [solanum.source.memory]
     [solanum.source.network]
@@ -31,9 +31,9 @@
   (into {}
         (map (fn coerce-entry
                [[k v]]
-               (let [k (keyword k)]
+               (let [k (u/keybabify k)]
                  [k (if (= :type k)
-                      (keyword v)
+                      (u/keybabify v)
                       v)])))
         m))
 
@@ -81,7 +81,7 @@
   (when-not (:type source-config)
     (throw (ex-info "Cannot configure source without a type"
                     {:config source-config})))
-  (source/initialize (u/kebabify-keys source-config)))
+  (source/initialize source-config))
 
 
 (defn- configure-output
@@ -90,7 +90,7 @@
   (when-not (:type output-config)
     (throw (ex-info "Cannot configure output without a type"
                     {:config output-config})))
-  (output/initialize (u/kebabify-keys output-config)))
+  (output/initialize output-config))
 
 
 (defn initialize-plugins
