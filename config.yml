@@ -18,7 +18,8 @@ sources:
       warning: 4
       critical: 8
   - type: memory
-  - type: diskstats
+  - type: disk-space
+  - type: disk-stats
     detailed: false
     devices:
       - sda
@@ -26,9 +27,14 @@ sources:
     detailed: false
     interfaces:
       - wlan0
+  - type: process
+    pattern: postgresql
+    user: postgresql
+    min_states:
+      critical: 0
   - type: tcp
     label: postgresql
-    port: 5431
+    port: 5432
   #- type: certificate
   #  host: www.google.com
   #  period: 300
