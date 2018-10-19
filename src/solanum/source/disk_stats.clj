@@ -77,7 +77,7 @@
                     (fn [[service stat detailed-metric f]]
                       (when-let [metric (and (or detailed (not detailed-metric))
                                              (get diffs stat))]
-                        {:service (str "disk-stats " service)
+                        {:service (str "disk stats " service)
                          :metric (if f (f metric) metric)
                          :device device}))
                     [["read bytes" :read-sectors false (partial * 512)]

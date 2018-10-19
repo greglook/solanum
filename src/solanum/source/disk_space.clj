@@ -50,7 +50,7 @@
 (defn- usage-event
   "Construct a metric event for the filesystem usage data."
   [data]
-  {:service "disk-space usage"
+  {:service "disk space usage"
    :metric (:usage data)
    :device (:filesystem data)
    :mount (:mount data)
