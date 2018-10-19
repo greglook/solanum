@@ -53,8 +53,8 @@
 (defn state-over
   "Calculate the state of a metric by comparing it to the given thresholds. The
   metric is compared to each threshold in turn, largest to smallest. The first
-  threshold the metric is larger than is returned, or the 'min-state' is
-  returned.
+  threshold the metric is larger than or equal to is returned, or the
+  'min-state' is returned.
 
   Use this with metrics where _higher values_ are worse; this lets you set
   thresholds like:
@@ -76,8 +76,8 @@
 (defn state-under
   "Calculate the state of a metric by comparing it to the given thresholds. The
   metric is compared to each threshold in turn, smallest to largest. The first
-  threshold the metric is smaller than is returned, or the 'max-state' is
-  returned.
+  threshold the metric is smaller than or equal to is returned, or the
+  'max-state' is returned.
 
   Use this with metrics where _lower values_ are worse; this lets you set
   thresholds like:
@@ -90,7 +90,7 @@
   [thresholds metric max-state]
   (loop [thresholds (sort-by val thresholds)]
     (if-let [[state threshold] (first thresholds)]
-      (if (< metric threshold)
+      (if (<= metric threshold)
         state
         (recur (next thresholds)))
       max-state)))

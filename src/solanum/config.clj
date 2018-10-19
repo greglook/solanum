@@ -13,6 +13,7 @@
     [solanum.source.load]
     [solanum.source.memory]
     [solanum.source.network]
+    [solanum.source.process]
     [solanum.source.test]
     [solanum.source.uptime]
     [solanum.output.core :as output]

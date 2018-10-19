@@ -73,7 +73,7 @@
             :description (format "Load averages: %.2f 1m, %.2f 5m, %.2f 15m"
                                  load-1m load-5m load-15m)}])
         (when-let [total (:total processes)]
-          [{:service "process count"
+          [{:service "process total"
             :metric total
             :description (:info processes)}])
         (when-let [running (:running processes)]
