@@ -27,12 +27,12 @@
     :dependencies
     [[clj-stacktrace "0.2.8"]
      [org.clojure/tools.namespace "0.2.11"]]
-    :jvm-opts ["-Dlogback-appender=repl"]}
+    :jvm-opts ["-DSOLANUM_LOG_APPENDER=repl"]}
 
    :test
-   {:jvm-opts ["-Dlogback-appender=nop"
-               "-Dlogback-level-root=TRACE"
-               "-Dlogback-level-solanum=TRACE"]}
+   {:jvm-opts ["-DSOLANUM_LOG_APPENDER=nop"
+               "-DSOLANUM_LOG_LEVEL_ROOT=TRACE"
+               "-DSOLANUM_LOG_LEVEL=TRACE"]}
 
    :uberjar
    {:target-path "target/uberjar"
