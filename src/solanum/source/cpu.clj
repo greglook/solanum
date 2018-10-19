@@ -80,6 +80,35 @@
 
 ;; ## CPU Source
 
+(defn- cpu-state-event
+  "Construct a state usage event for the CPU as a whole."
+  [[state pct]]
+  {:service "cpu state"
+   :metric (double pct)
+   :state (name state)})
+
+
+(defn- core-state-event
+  "Construct a state usage event for a single core of the CPU."
+  [core [state pct]]
+  {:service "cpu core state"
+   :metric (double pct)
+   :state (name state)
+   :core core})
+
+
+(defn- core-events
+  "Build a sequence of events measuring a single core of the CPU."
+  [per-state [core states]]
+  (concat
+    (when-let [pct (some->> (:idle states) (- 1.0))]
+      [{:service "cpu core usage"
+        :metric pct
+        :core core}])
+    (when per-state
+      (map (partial core-state-event core) states))))
+
+
 (defrecord CPUSource
   [mode per-core per-state usage-states tracker]
 
@@ -99,33 +128,11 @@
             :state (source/state-over usage-states pct :ok)}])
         ; Overall per-state metrics.
         (when per-state
-          (map
-            (fn state-event
-              [[state pct]]
-              {:service "cpu state"
-               :metric pct
-               :state (name state)})
-            (usage "cpu")))
+          (map cpu-state-event (usage "cpu")))
         ; Per-core metrics
         (when per-core
-          (mapcat
-            (fn core-events
-              [[core states]]
-              (concat
-                (when-let [pct (some->> (:idle states) (- 1.0))]
-                  [{:service "cpu core usage"
-                    :metric pct
-                    :core core}])
-                (when per-state
-                  (map
-                    (fn state-event
-                      [[state pct]]
-                      {:service "cpu core state"
-                       :metric pct
-                       :core core
-                       :state (name state)})
-                    states))))
-            (dissoc usage "cpu")))))))
+          (mapcat (partial core-events per-state)
+                  (dissoc usage "cpu")))))))
 
 
 (defmethod source/initialize :cpu
