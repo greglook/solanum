@@ -79,13 +79,20 @@
              "solanum-shutdown")))
 
 
+(defn- event-base
+  "Calculate the base set of fields for events."
+  [options config]
+  (u/merge-attrs (:defaults config)
+                 (:attribute options)
+                 {:host (:host options)
+                  :tags (vec (:tag options))}))
+
+
 (defn- run-daemon
   "Run the process in daemon mode."
   [options config]
   (let [channel (chan/create 1000)
-        defaults (u/merge-attrs (:defaults config)
-                                (:attribute options)
-                                {:tags (vec (:tag options))})
+        defaults (event-base options config)
         scheduler (scheduler/start! defaults (:sources config) channel)
         writer (writer/start! channel
                               (:outputs config)
@@ -100,9 +107,7 @@
 (defn- run-test
   "Run the process in test mode."
   [options config]
-  (let [defaults (u/merge-attrs (:defaults config)
-                                (:attribute options)
-                                {:tags (vec (:tag options))})]
+  (let [defaults (event-base options config)]
     (loop [n (dec (:test-count options))]
       (let [events (into []
                          (mapcat (partial scheduler/collect-source defaults))
