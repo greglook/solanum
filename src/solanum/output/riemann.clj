@@ -2,7 +2,9 @@
   "Send events to a Riemann server."
   (:require
     [riemann.client :as riemann]
-    [solanum.output.core :as output]))
+    [solanum.output.core :as output])
+  (:import
+    io.riemann.riemann.client.RiemannClient))
 
 
 (defn- add-timestamp
@@ -50,5 +52,5 @@
         port (get config :port 5555)]
     (-> config
         (select-keys [:type :host :port])
-        (assoc :client (riemann/tcp-client :host host :port port))
+        (assoc :client (RiemannClient/tcp (str host) (int port)))
         (map->RiemannOutput))))
