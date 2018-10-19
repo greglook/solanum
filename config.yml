@@ -26,14 +26,17 @@ sources:
     detailed: false
     interfaces:
       - wlan0
-  - type: certificate
-    host: www.google.com
-    period: 300
-    attributes:
-      ttl: 3600
-    expiry_states:
-      warning: 180
-      critical: 30
+  - type: tcp
+    label: postgresql
+    port: 5431
+  #- type: certificate
+  #  host: www.google.com
+  #  period: 300
+  #  attributes:
+  #    ttl: 3600
+  #  expiry_states:
+  #    warning: 180
+  #    critical: 30
 
 outputs:
   - type: print
