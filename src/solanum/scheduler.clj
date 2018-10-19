@@ -56,12 +56,18 @@
 (defn- schedule-collection
   "Launch a new thread to collect metrics from the source."
   [^Queue schedule defaults source event-chan]
-  (future
-    (run! (partial chan/put! event-chan)
-          (collect-source defaults source))
-    (locking schedule
-      (.add schedule [(next-run source) source])
-      (.notifyAll schedule))))
+  (doto (Thread.
+          ^Runnable
+          (fn collector
+            []
+            (run! (partial chan/put! event-chan)
+                  (collect-source defaults source))
+            (locking schedule
+              (.add schedule [(next-run source) source])
+              (.notifyAll schedule)))
+          (str (name (:type source)) "-source"))
+    (.setDaemon true)
+    (.start)))
 
 
 (defn- scheduler-loop
