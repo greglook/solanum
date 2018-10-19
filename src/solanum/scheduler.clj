@@ -44,8 +44,13 @@
          (source/collect-events source))
     (catch Exception ex
       (log/warn ex "Failure collecting from" (:type source) "source")
-      ; TODO: send an event?
-      nil)))
+      [{:service "solanum source error"
+        :metric 1
+        :state :critical
+        :description (format "Failure collectiong from %s source:\n%s: %s"
+                             (name (:type source))
+                             (.getName (class ex))
+                             (.getMessage ex))}])))
 
 
 (defn- schedule-collection
