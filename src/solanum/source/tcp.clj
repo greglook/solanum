@@ -10,37 +10,40 @@
       SocketTimeoutException)))
 
 
+(defn- test-port
+  "Test a TCP port by connecting to it. Returns a vector with a state and
+  description."
+  [host port timeout]
+  (let [address (InetSocketAddress. (str host) (long port))
+        socket (Socket.)]
+    (try
+      (.connect socket address (long timeout))
+      [:ok (format "TCP port %d is open on %s" port host)]
+      (catch SocketTimeoutException ex
+        [:critical (format "Timed out connecting to TCP port %d on %s"
+                           port host)])
+      (catch Exception ex
+        [:critical (format "Error connecting to TCP port %d on %s\n%s: %s"
+                           port host
+                           (.getName (class ex))
+                           (.getMessage ex))])
+      (finally
+        (.close socket)))))
+
+
 (defrecord TCPSource
-  [host port]
+  [label host port]
 
   source/Source
 
   (collect-events
     [this]
-    (let [address (InetSocketAddress. (str host) (long port))
-          socket (Socket.)
-          open-event (fn [metric state desc]
-                       {:service "tcp socket open"
-                        :port port
-                        :metric metric
-                        :state state
-                        :description desc})]
-      (try
-        (.connect socket address 1000)
-        [(open-event 1 :ok
-                     (format "TCP port %d is open on %s" port host))]
-        (catch SocketTimeoutException ex
-          [(open-event 0 :critical
-                       (format "Timed out connecting to TCP port %d on %s"
-                               port host))])
-        (catch Exception ex
-          [(open-event 0 :critical
-                       (format "Error connecting to TCP port %d on %s\n%s: %s"
-                               port host
-                               (.getName (class ex))
-                               (.getMessage ex)))])
-        (finally
-          (.close socket))))))
+    (let [[state desc] (test-port host port 1000)]
+      [{:service "tcp socket open"
+        :port (str (or label port))
+        :metric (if (= :ok state) 1 0)
+        :state state
+        :description desc}])))
 
 
 (defmethod source/initialize :tcp
@@ -49,5 +52,5 @@
     (throw (IllegalArgumentException.
              "Cannot initialize TCP source without a port")))
   (-> (merge {:host "localhost"} config)
-      (select-keys [:type :period :host :port])
+      (select-keys [:type :period :label :host :port])
       (map->TCPSource)))
