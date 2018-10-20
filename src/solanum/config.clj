@@ -81,19 +81,23 @@
 (defn- configure-source
   "Construct and start a new metrics source from configuration."
   [source-config]
-  (when-not (:type source-config)
-    (throw (ex-info "Cannot configure source without a type"
-                    {:config source-config})))
-  (source/initialize source-config))
+  (try
+    (if (:type source-config)
+      (source/initialize source-config)
+      (log/warn "Cannot configure source without a type:" (pr-str source-config)))
+    (catch Exception ex
+      (log/error ex "Failed to initialize source:" (pr-str source-config)))))
 
 
 (defn- configure-output
   "Construct and start a new metrics output from configuration."
   [output-config]
-  (when-not (:type output-config)
-    (throw (ex-info "Cannot configure output without a type"
-                    {:config output-config})))
-  (output/initialize output-config))
+  (try
+    (if (:type output-config)
+      (output/initialize output-config)
+      (log/warn "Cannot configure output without a type:" (pr-str output-config)))
+    (catch Exception ex
+      (log/error ex "Failed to initialize output:" (pr-str output-config)))))
 
 
 (defn initialize-plugins
