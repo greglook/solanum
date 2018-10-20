@@ -14,6 +14,7 @@
       (fn write
         [output]
         (try
+          (log/debug "Writing" (count events) "to" output)
           (output/write-events output events)
           (catch InterruptedException ie
             (throw ie))

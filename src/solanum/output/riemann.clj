@@ -43,14 +43,16 @@
 
   (write-events
     [this events]
-    (riemann/send-events client (prepare-batch events))))
+    @(riemann/send-events client (prepare-batch events))))
 
 
 (defmethod output/initialize :riemann
   [config]
   (let [host (get config :host "localhost")
         port (get config :port 5555)]
-    (-> config
-        (select-keys [:type :host :port])
-        (assoc :client (RiemannClient/tcp (str host) (int port)))
-        (map->RiemannOutput))))
+    (map->RiemannOutput
+      {:type :riemann
+       :host host
+       :port port
+       :client (doto (RiemannClient/tcp (str host) (int port))
+                 (riemann/connect!))})))
