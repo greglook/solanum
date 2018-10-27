@@ -35,22 +35,33 @@
     queue))
 
 
+(defn- event-time
+  "Return the current time to use for a collected event."
+  []
+  (/ (double (System/currentTimeMillis)) 1000))
+
+
 (defn collect-source
   "Collect events from a source and put them onto the event channel."
   [defaults source]
-  (try
-    (log/debug "Collecting events from" (pr-str source))
-    (map (partial u/merge-attrs defaults (:attributes source))
-         (source/collect-events source))
-    (catch Exception ex
-      (log/warn ex "Failure collecting from" (:type source) "source")
-      [{:service "solanum source error"
-        :metric 1
-        :state :critical
-        :description (format "Failure collectiong from %s source:\n%s: %s"
-                             (name (:type source))
-                             (.getName (class ex))
-                             (.getMessage ex))}])))
+  (let [prep-event (comp
+                      #(assoc % :time (event-time))
+                      (partial u/merge-attrs
+                               defaults
+                               (:attributes source)))]
+    (try
+      (log/debug "Collecting events from" (pr-str source))
+      (into [] (map prep-event) (source/collect-events source))
+      (catch Exception ex
+        (log/warn ex "Failure collecting from" (:type source) "source")
+        [(prep-event
+           {:service "solanum source error"
+            :metric 1
+            :state :critical
+            :description (format "Failure collectiong from %s source:\n%s: %s"
+                                 (name (:type source))
+                                 (.getName (class ex))
+                                 (.getMessage ex))})]))))
 
 
 (defn- schedule-collection
