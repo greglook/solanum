@@ -22,8 +22,7 @@ test:
 	lein test
 
 target/uberjar/solanum.jar: src/* resources/* svm/java/*
-	#lein with-profile +svm uberjar
-	lein uberjar
+	lein with-profile +svm uberjar
 
 uberjar: target/uberjar/solanum.jar
 
@@ -35,7 +34,6 @@ solanum: target/uberjar/solanum.jar $(reflection-config)
 	    -J-Xmx3G -J-Xms3G \
 	    --no-server \
 	    -jar $<
-
 
 # seems to be automatic because of --report-unsupported-elements-at-runtime
 #--delay-class-initialization-to-runtime=io.netty.handler.ssl.ReferenceCountedOpenSslEngine \

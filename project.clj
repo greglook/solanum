@@ -35,7 +35,9 @@
                "-DSOLANUM_LOG_LEVEL=TRACE"]}
 
    :svm
-   {:java-source-paths ["svm/java"]}
+   {:java-source-paths ["svm/java"]
+    :dependencies
+    [[com.oracle.substratevm/svm "1.0.0-rc8" :scope "provided"]]}
 
    :uberjar
    {:target-path "target/uberjar"
