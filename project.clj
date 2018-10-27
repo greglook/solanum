@@ -34,6 +34,9 @@
                "-DSOLANUM_LOG_LEVEL_ROOT=TRACE"
                "-DSOLANUM_LOG_LEVEL=TRACE"]}
 
+   :svm
+   {:java-source-paths ["svm/java"]}
+
    :uberjar
    {:target-path "target/uberjar"
     :uberjar-name "solanum.jar"
