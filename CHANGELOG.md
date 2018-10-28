@@ -7,10 +7,15 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-Initial Clojure rewrite.
+...
+
+## [3.0.0] - 2018-10-27
+
+Clojure rewrite.
 
 ## 2.0.0 - 2018-02-18
 
 Final cut of Ruby version.
 
-[Unreleased]: https://github.com/greglook/solanum/compare/2.0.0...HEAD
+[Unreleased]: https://github.com/greglook/solanum/compare/3.0.0...HEAD
+[3.0.0]: https://github.com/greglook/solanum/compare/2.0.0...3.0.0
