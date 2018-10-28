@@ -15,15 +15,14 @@
 
 
 (def version
-  "Delayed reading of the project version."
-  (delay
-    (if-let [props-file (io/resource "META-INF/maven/mvxcvi/solanum/pom.properties")]
-      (with-open [props-reader (io/reader props-file)]
-        (let [props (doto (java.util.Properties.)
-                      (.load props-reader))
-              {:strs [groupId artifactId version revision]} props]
-          (format "%s/%s %s (%s)" groupId artifactId version revision)))
-      "HEAD")))
+  "Project version string."
+  (if-let [props-file (io/resource "META-INF/maven/mvxcvi/solanum/pom.properties")]
+    (with-open [props-reader (io/reader props-file)]
+      (let [props (doto (java.util.Properties.)
+                    (.load props-reader))
+            {:strs [groupId artifactId version revision]} props]
+        (format "%s/%s %s (%s)" groupId artifactId version revision)))
+    "HEAD"))
 
 
 (defn- load-hostname
@@ -144,7 +143,7 @@
         (run! println errors)
         (System/exit 1)))
     (when (:version options)
-      (println @version)
+      (println version)
       (flush)
       (System/exit 0))
     (when (or (:help options) (empty? config-paths))
