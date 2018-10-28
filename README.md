@@ -1,12 +1,27 @@
 Solanum
 =======
 
-[![Gem Version](https://badge.fury.io/rb/solanum.svg)](https://badge.fury.io/rb/solanum)
+[![CircleCI](https://circleci.com/gh/greglook/solanum.svg?style=shield&circle-token=c14a7265562fdec8881672070d87d812f076bf8a)](https://circleci.com/gh/greglook/solanum)
 
-This gem provides a monitoring daemon which can be configured to collect data
-from a variety of pluggable sources. The results can be printed to the console
-or sent to a [Riemann](http://riemann.io/) server. This requires the
-`riemann-client` gem to work.
+Solanum is a simple monitoring daemon which can be configured to collect
+host-level data from a variety of sources. The results can be printed to the
+console or sent to a [Riemann](http://riemann.io/) server. This is primarily
+intended as a replacement for running a number of independent programs like the
+[riemann-tools](https://github.com/riemann/riemann-tools) daemons.
+
+Solanum is written in Clojure and uses [Graal](https://www.graalvm.org/) to
+compile native binaries. These are much simpler to deploy than coordinating Ruby
+gem installs.
+
+
+## Installation
+
+Releases are published on Clojars and GitHub. To use the latest version with
+Leiningen, add the following dependency to your project definition:
+
+[![Clojars Project](http://clojars.org/mvxcvi/solanum/latest-version.svg)](http://clojars.org/mvxcvi/solanum)
+
+To install the native binaries, simply place them on your path.
 
 
 ## Metric Events
@@ -17,19 +32,19 @@ respectively. Events may also contain other attributes such as a `state`, `ttl`,
 `tags`, and so on - see the [Riemann concepts](http://riemann.io/concepts.html)
 page for more details.
 
-```ruby
-{
-  service: 'cpu usage',
-  metric: 0.1875,
-  state: 'ok',
-}
+```clojure
+{:service "cpu usage"
+ :metric 0.1875
+ :state :ok}
 ```
 
 
 ## Configuration
 
 Solanum is configured using one or more YAML files. These specify common event
-attributes, sources, and outputs.
+attributes, sources, and outputs. Config files are provided as command-line
+arguments, and merged together in order to collect the configured sources and
+outputs.
 
 See the [example config](config.yml) in this repo for possible config options.
 
@@ -40,13 +55,13 @@ every event. This can be used to provide a common TTL, tags, and more.
 
 ### Sources
 
-A _source_ is a class which extends `Solanum::Source` and implements the
-`collect!` method to return metric events. Solanum comes with several metric
-sources built in, including basic host-level monitoring of CPU usage, load,
-memory, diskstats, network, and more.
+A _source_ is a record which implements a `collect-events` method to return
+metric events. Solanum comes with several metric sources built in, including
+basic host-level monitoring of CPU usage, load, memory, diskstats, network, and
+more.
 
-Additional custom sources can be provided, as long as they are in Ruby's lib
-path for the daemon.
+You can provide your own custom sources, but you'll need to build your own
+uberjar using this project as a dependency.
 
 ### Outputs
 
