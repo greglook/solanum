@@ -2,6 +2,7 @@
   "Main entry for the daemon."
   (:gen-class)
   (:require
+    [clojure.java.io :as io]
     [clojure.java.shell :as shell]
     [clojure.string :as str]
     [clojure.tools.cli :as cli]
@@ -11,6 +12,18 @@
     [solanum.scheduler :as scheduler]
     [solanum.util :as u]
     [solanum.writer :as writer]))
+
+
+(def version
+  "Delayed reading of the project version."
+  (delay
+    (if-let [props-file (io/resource "META-INF/maven/mvxcvi/solanum/pom.properties")]
+      (with-open [props-reader (io/reader props-file)]
+        (let [props (doto (java.util.Properties.)
+                      (.load props-reader))
+              {:strs [groupId artifactId version revision]} props]
+          (format "%s/%s %s (%s)" groupId artifactId version revision)))
+      "HEAD")))
 
 
 (defn- load-hostname
@@ -57,7 +70,8 @@
    [nil "--test-delay SECONDS" "When in test mode, sleep this long between collections."
     :parse-fn #(Integer/parseInt %)
     :default 1]
-   ["-h" "--help"]])
+   [nil  "--version" "Print program version information."]
+   ["-h" "--help" "Show help and usage information."]])
 
 
 (defn- register-cleanup!
@@ -129,6 +143,10 @@
       (binding [*out* *err*]
         (run! println errors)
         (System/exit 1)))
+    (when (:version options)
+      (println @version)
+      (flush)
+      (System/exit 0))
     (when (or (:help options) (empty? config-paths))
       (println "Usage: solanum [options] <config.yml> [config2.yml ...]")
       (newline)
@@ -147,6 +165,6 @@
       (if (:test options)
         (run-test options config)
         (run-daemon options config)))
-    ; TODO: thread never gets here.
+    ; NOTE: thread never gets here.
     (shutdown-agents)
     (System/exit 0)))
