@@ -16,12 +16,9 @@ gem installs.
 
 ## Installation
 
-Releases are published on Clojars and GitHub. To use the latest version with
-Leiningen, add the following dependency to your project definition:
-
-[![Clojars Project](http://clojars.org/mvxcvi/solanum/latest-version.svg)](http://clojars.org/mvxcvi/solanum)
-
-To install the native binaries, simply place them on your path.
+Releases are published on the [GitHub project](https://github.com/greglook/solanum/releases).
+The native binaries are self-contained, so to install them simply place them on
+your path.
 
 
 ## Metric Events
