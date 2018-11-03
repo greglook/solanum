@@ -1,19 +1,19 @@
 # Build file for Solanum
-#
-# https://www.astrecipes.net/blog/2018/07/20/cmd-line-apps-with-clojure-and-graalvm/
-# https://medium.com/graalvm/instant-netty-startup-using-graalvm-native-image-generation-ed6f14ff7692
 
-default: lint
+default: package
 
-.PHONY: setup clean lint test uberjar
+.PHONY: setup clean lint test uberjar package
+
+version := $(shell grep defproject project.clj | cut -d ' ' -f 3 | tr -d \")
+platform := $(shell uname -s | tr '[:upper:]' '[:lower:]')
+release_name := solanum_$(version)_$(platform)
 
 # TODO: fetch graal?
-
 setup:
 	lein deps
 
 clean:
-	rm -rf target solanum
+	rm -rf target dist solanum
 
 lint:
 	lein check
@@ -26,14 +26,19 @@ target/uberjar/solanum.jar: src/* resources/* svm/java/*
 
 uberjar: target/uberjar/solanum.jar
 
-solanum: reflection-config=svm/reflection-config.json
+# TODO: --static ?
+solanum: reflection-config := svm/reflection-config.json
 solanum: target/uberjar/solanum.jar $(reflection-config)
 	$(GRAAL_PATH)/bin/native-image \
 	    --report-unsupported-elements-at-runtime \
+	    --delay-class-initialization-to-runtime=io.netty.handler.ssl.ReferenceCountedOpenSslEngine \
 	    -H:ReflectionConfigurationFiles=$(reflection-config) \
 	    -J-Xmx3G -J-Xms3G \
 	    --no-server \
 	    -jar $<
 
-# seems to be automatic because of --report-unsupported-elements-at-runtime
-#--delay-class-initialization-to-runtime=io.netty.handler.ssl.ReferenceCountedOpenSslEngine \
+dist/$(release_name).tar.gz: solanum
+	@mkdir -p dist
+	tar -cvzf $@ $^
+
+package: dist/$(release_name).tar.gz
