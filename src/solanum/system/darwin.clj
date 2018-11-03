@@ -27,10 +27,10 @@
   []
   (let [result (shell/sh "top" "-l" "1")]
     (if (zero? (:exit result))
-     (->> (str/split (:out result) #"\n")
-          (take 10)
-          (parse-top-output))
-     (log/error "Failed to run top:" (pr-str (:err result))))))
+      (->> (str/split (:out result) #"\n")
+           (take 10)
+           (parse-top-output))
+      (log/error "Failed to run top:" (pr-str (:err result))))))
 
 
 (defn read-top

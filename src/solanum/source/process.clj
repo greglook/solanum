@@ -28,14 +28,14 @@
      :rss (Long/parseLong rss)
      :vsize (Long/parseLong vsize)
      :state (case state
-                  "D" :uninterruptible-sleep ; usually IO
-                  "R" :running
-                  "S" :sleep ; interruptable
-                  "T" :stopped
-                  "W" :paging ; defunct since 2.6.x
-                  "X" :dead
-                  "Z" :zombie
-                  :unknown)
+              "D" :uninterruptible-sleep ; usually IO
+              "R" :running
+              "S" :sleep ; interruptable
+              "T" :stopped
+              "W" :paging ; defunct since 2.6.x
+              "X" :dead
+              "Z" :zombie
+              :unknown)
      :user user
      :group group
      :start-time lstart ; TODO: parse?

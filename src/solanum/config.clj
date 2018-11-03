@@ -6,6 +6,9 @@
     [clojure.string :as str]
     [clojure.tools.logging :as log]
     [clojure.walk :as walk]
+    [solanum.output.core :as output]
+    [solanum.output.print]
+    [solanum.output.riemann]
     [solanum.source.core :as source]
     [solanum.source.cpu]
     [solanum.source.disk-space]
@@ -18,9 +21,6 @@
     [solanum.source.tcp]
     [solanum.source.test]
     [solanum.source.uptime]
-    [solanum.output.core :as output]
-    [solanum.output.print]
-    [solanum.output.riemann]
     [solanum.util :as u])
   (:import
     org.yaml.snakeyaml.Yaml))
@@ -63,8 +63,8 @@
         (let [parser (Yaml.)
               data (.load parser (slurp file))]
           (walk/prewalk yaml->clj data))
-          (catch Exception ex
-            (log/error ex "Failed to load configuration from" path)))
+        (catch Exception ex
+          (log/error ex "Failed to load configuration from" path)))
       (log/warn "Can't load configuration from nonexistent file" path))))
 
 

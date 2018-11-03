@@ -17,6 +17,12 @@
    [org.yaml/snakeyaml "1.23"]
    [riemann-clojure-client "0.5.0"]]
 
+  :cljfmt
+  {:padding-lines 2
+   :max-consecutive-blank-lines 3
+   :indents {cond [[:block 0]]
+             case [[:block 0]]}}
+
   :hiera
   {:cluster-depth 2
    :vertical false
