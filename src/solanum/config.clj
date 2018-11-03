@@ -10,6 +10,7 @@
     [solanum.source.cpu]
     [solanum.source.disk-space]
     [solanum.source.disk-stats]
+    [solanum.source.http]
     [solanum.source.load]
     [solanum.source.memory]
     [solanum.source.network]

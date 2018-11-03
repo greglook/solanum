@@ -7,7 +7,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+### Added
+- New HTTP source allows for checking URL endpoints and asserting that the
+  response meets certain properties.
 
 ## [3.0.0] - 2018-10-27
 

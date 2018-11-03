@@ -25,6 +25,15 @@
 
 ;; ## Event Helpers
 
+(defn stopwatch
+  "Constructs a delayed value which will yield the number of milliseconds
+  elapsed since its construction when realized."
+  []
+  (let [start (System/nanoTime)]
+    (delay
+      (/ (- (System/nanoTime) start) 1e6))))
+
+
 (defn byte-str
   "Format a byte size into a human-friendly string representation."
   [size]
