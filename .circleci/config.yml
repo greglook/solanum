@@ -5,6 +5,8 @@ jobs:
     working_directory: ~/repo
     docker:
       - image: circleci/clojure:lein-2.7.1
+    environment:
+      SOLANUM_LOG_APPENDER: nop
     steps:
       - checkout
       - restore_cache:

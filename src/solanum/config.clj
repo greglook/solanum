@@ -101,7 +101,7 @@
       (log/error ex "Failed to initialize output:" (pr-str output-config)))))
 
 
-(defn initialize-plugins
+(defn- initialize-plugins
   "Initialize all source and output plugins."
   [config]
   (-> (into {} config)
