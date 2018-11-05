@@ -28,6 +28,12 @@
 
 ;; ## File Loading
 
+(defn- keybabify
+  "Replace underscores in a keyword with hyphens. Only uses the name portion."
+  [k]
+  (keyword (str/replace (name k) "_" "-")))
+
+
 (defn- coerce-map
   "Coerces a Java map into a Clojure map, keywordizing the keys and `:type`
   values."
@@ -35,9 +41,9 @@
   (into {}
         (map (fn coerce-entry
                [[k v]]
-               (let [k (u/keybabify k)]
+               (let [k (keybabify k)]
                  [k (if (= :type k)
-                      (u/keybabify v)
+                      (keybabify v)
                       v)])))
         m))
 
@@ -72,8 +78,8 @@
   "Merge configuration maps together to produce a combined config."
   [a b]
   {:defaults (u/merge-attrs (:defaults a) (:defaults b))
-   :sources (u/merge-vec (:sources a) (:sources b))
-   :outputs (u/merge-vec (:outputs a) (:outputs b))})
+   :sources (into (vec (:sources a)) (:sources b))
+   :outputs (into (vec (:outputs a)) (:outputs b))})
 
 
 
