@@ -37,11 +37,6 @@
      [org.clojure/tools.namespace "0.2.11"]]
     :jvm-opts ["-DSOLANUM_LOG_APPENDER=repl"]}
 
-   :test
-   {:jvm-opts ["-DSOLANUM_LOG_APPENDER=nop"
-               "-DSOLANUM_LOG_LEVEL_ROOT=TRACE"
-               "-DSOLANUM_LOG_LEVEL=TRACE"]}
-
    :svm
    {:java-source-paths ["svm/java"]
     :dependencies
