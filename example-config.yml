@@ -35,14 +35,22 @@ sources:
   - type: tcp
     label: postgresql
     port: 5432
-  #- type: certificate
-  #  host: www.google.com
-  #  period: 300
-  #  attributes:
-  #    ttl: 3600
-  #  expiry_states:
-  #    warning: 180
-  #    critical: 30
+  - type: http
+    period: 300
+    label: vault
+    url: 'http://localhost:8200/v1/sys/health'
+    response_checks:
+      - type: status
+        values: [201, 429]
+      - type: data
+        key: initialized
+        value: true
+      - type: data
+        key: sealed
+        value: false
+    record_fields:
+      standby: standby
+      version: version
 
 outputs:
   - type: print

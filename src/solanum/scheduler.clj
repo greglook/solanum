@@ -1,15 +1,13 @@
 (ns solanum.scheduler
   "Event collection scheduling code."
   (:require
+    [clojure.tools.logging :as log]
     [solanum.channel :as chan]
     [solanum.source.core :as source]
-    [solanum.util :as u]
-    [clojure.tools.logging :as log])
+    [solanum.util :as u])
   (:import
-    (java.time
-      Instant)
-    (java.time.temporal
-      ChronoUnit)
+    java.time.Instant
+    java.time.temporal.ChronoUnit
     (java.util
       PriorityQueue
       Queue)))
@@ -44,11 +42,10 @@
 (defn collect-source
   "Collect events from a source and put them onto the event channel."
   [defaults source]
-  (let [prep-event (comp
-                      #(assoc % :time (event-time))
-                      (partial u/merge-attrs
-                               defaults
-                               (:attributes source)))]
+  (let [prep-event (comp #(assoc % :time (event-time))
+                         (partial u/merge-attrs
+                                  defaults
+                                  (:attributes source)))]
     (try
       (log/debug "Collecting events from" (pr-str source))
       (into [] (map prep-event) (source/collect-events source))

@@ -4,7 +4,8 @@
     [riemann.client :as riemann]
     [solanum.output.core :as output])
   (:import
-    io.riemann.riemann.client.RiemannClient))
+    (io.riemann.riemann.client
+      RiemannClient)))
 
 
 (defn- add-timestamp

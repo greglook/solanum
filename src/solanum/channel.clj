@@ -1,5 +1,6 @@
 (ns solanum.channel
-  "Shared event channel."
+  "Shared event channel logic for sending collected metric events to be written
+  to outputs."
   (:import
     (java.util.concurrent
       LinkedBlockingQueue
