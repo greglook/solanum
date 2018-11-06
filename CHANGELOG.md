@@ -7,6 +7,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+...
+
+## [3.1.0] - 2018-11-05
+
 ### Added
 - New HTTP source allows for checking URL endpoints and asserting that the
   response meets certain properties.
@@ -19,5 +23,6 @@ Clojure rewrite.
 
 Final cut of Ruby version.
 
-[Unreleased]: https://github.com/greglook/solanum/compare/3.0.0...HEAD
+[Unreleased]: https://github.com/greglook/solanum/compare/3.1.0...HEAD
+[3.1.0]: https://github.com/greglook/solanum/compare/3.0.0...3.1.0
 [3.0.0]: https://github.com/greglook/solanum/compare/2.0.0...3.0.0
