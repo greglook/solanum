@@ -49,9 +49,10 @@
 
 (defn- usage-event
   "Construct a metric event for the filesystem usage data."
-  [data]
+  [thresholds data]
   {:service "disk space usage"
    :metric (:usage data)
+   :state (source/state-over thresholds (:usage data) :ok)
    :device (:filesystem data)
    :mount (:mount data)
    :description (format "Filesystem %s mounted on %s is %.1f%% used\n%s of %s remaining"
@@ -63,7 +64,7 @@
 
 
 (defrecord DiskSpaceSource
-  [mode]
+  [mode usage-states]
 
   source/Source
 
@@ -75,13 +76,13 @@
             (comp
               ; Only monitor filesystems which map to a real block device.
               (filter #(str/includes? (:filesystem %) "/"))
-              (map usage-event))
+              (map (partial usage-event usage-states)))
             info))))
 
 
 (defmethod source/initialize :disk-space
   [config]
   (-> config
-      (select-keys [:type :period])
+      (select-keys [:type :period :usage-states])
       (assoc :mode (sys/detect :disk-space supported-modes (:mode config) :linux))
       (map->DiskSpaceSource)))
