@@ -44,6 +44,8 @@
 
   (write-events
     [this events]
+    (when-not (riemann/connected? client)
+      (riemann/reconnect! client))
     @(riemann/send-events client (prepare-batch events))))
 
 
