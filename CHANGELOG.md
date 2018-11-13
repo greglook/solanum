@@ -7,7 +7,12 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+### Fixed
+- Properly trim version string on Linux platforms.
+- Automatically reconnect Riemann client on send.
+
+### Added
+- The `disk-space` source now supports `usage-states` thresholds.
 
 ## [3.1.0] - 2018-11-05
 
