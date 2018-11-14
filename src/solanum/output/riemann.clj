@@ -51,11 +51,10 @@
 
 (defmethod output/initialize :riemann
   [config]
-  (let [host (get config :host "localhost")
-        port (get config :port 5555)]
+  (let [host (str (get config :host "localhost"))
+        port (int (get config :port 5555))]
     (map->RiemannOutput
       {:type :riemann
        :host host
        :port port
-       :client (doto (RiemannClient/tcp (str host) (int port))
-                 (riemann/connect!))})))
+       :client (RiemannClient/tcp host port)})))
