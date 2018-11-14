@@ -31,7 +31,7 @@ solanum: reflection-config := svm/reflection-config.json
 solanum: target/uberjar/solanum.jar $(reflection-config)
 	$(GRAAL_PATH)/bin/native-image \
 	    --report-unsupported-elements-at-runtime \
-	    --enable-url-protocols=https \
+	    --enable-url-protocols=http,https \
 	    --delay-class-initialization-to-runtime=io.netty.handler.ssl.ReferenceCountedOpenSslEngine \
 	    -H:ReflectionConfigurationFiles=$(reflection-config) \
 	    -J-Xmx3G -J-Xms3G \
