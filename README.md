@@ -66,8 +66,8 @@ An _output_ is a destination to report the collected events to. The simplest
 one is the `print` output, which writes each event to STDOUT. This is useful for
 debugging, but you probably won't leave it on for deployed daemons.
 
-The other included choice is the `riemann` output, which sends each event to a
-Riemann monitoring server.
+See the [output docs](doc/outputs.md) for information about the available output
+types and their configuration options.
 
 
 ## License
