@@ -78,7 +78,7 @@
 (defn- register-cleanup!
   "Register a shutdown hook to cleanly terminate the process."
   [scheduler channel writer]
-  ; TODO: this does run on SIGINT, but the app still exits 130
+  ; NOTE: this does run on SIGINT, but the app still exits 130
   (.addShutdownHook
     (Runtime/getRuntime)
     (Thread. (fn cleanup

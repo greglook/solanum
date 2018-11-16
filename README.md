@@ -51,6 +51,10 @@ See the [example config](config.yml) in this repo for possible config options.
 The `defaults` section of the config provides common attributes to apply to
 every event. This can be used to provide a common TTL, tags, and more.
 
+**Note:** attributes specified on the command line take precedence over these
+global defaults. In particular, this means that a custom hostname _must_ be set
+on the command line to take effect.
+
 ### Sources
 
 A _source_ is a record which implements a `collect-events` method to return

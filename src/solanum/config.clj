@@ -118,6 +118,7 @@
 (defn load-files
   "Load multiple files, merge them together, and initialize the plugins."
   [config-paths]
+  ; TODO: warn if defaults include :host
   (->> (map read-file config-paths)
        (reduce merge-config)
        (initialize-plugins)))
