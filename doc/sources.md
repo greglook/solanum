@@ -197,19 +197,81 @@ prefixed with `net io ...` and includes an `interface` attribute.
 
 ## process
 
-...
+The `process` source watches specific processes running on the host to monitor
+whether they are alive. The source reports a `process count` of all running
+processes which match the given pattern.
+
+It also reports two measures of the matched processes' memory usage. The
+`process resident-set bytes` gives the actual physical memory held active by the
+process, while the `process virtual-memory bytes` shows the total memory
+allocated, some of which may be unused or paged out to disk.
+
+- `pattern` (required)
+
+  A regular expression to match the processes being watched. If more than one
+  process matches, the events record the _aggregate_ statistics of all of them.
+
+- `label` (default: same as `pattern`)
+
+  Overrides the `label` field in the sent events with a more human-friendly
+  name. Usually this is set to the name of the process being watched.
+
+- `user`
+
+  If given, restricts which user must own the running processes in order to
+  match them.
+
+- `min-states`
+
+  A map of state names to thresholds. If the count of matched processes is under
+  the value of a threshold, the event's `state` will be set to match. Use this
+  to ensure _at least_ a certain number of processes are running. Usually takes
+  the form of `critical: 0`.
+
+- `max-states`
+
+  A map of state names to thresholds. If the count of matched processes is over
+  the value of a threshold, the event's `state` will be set to match. Use this
+  to ensure that _no more than_ a certain number of processes are running.
 
 
 ## tcp
 
-...
+The `tcp` source tests that a local port is open and accepting TCP connections.
+It reports a single event, `tcp socket open` with a metric and state of `1`/`ok`
+if the socket is open, or `0`/`critical` if not.
+
+- `port` (required)
+
+  The TCP port to check.
+
+- `host` (default: `localhost`)
+
+  The host to connect to. This should _usually_ be localhost, though in some
+  cases a service may only bind to specific interfaces.
+
+- `label` (default: same as `port`)
+
+  Overrides the `port` field in the sent events with a more human-friendly
+  name. Usually this is set to the name of the process or protocol the port is
+  for.
 
 
 ## test
 
-...
+The `test` source is a simple generator for exercising Solanum. It generates
+test events with a few bits of random variance.
+
+- `min-count` (default: `1`)
+
+  Generate at least this many events each time the source is collected.
+
+- `max-count` (default: `1`)
+
+  Generate at most this many events each time the source is collected.
 
 
 ## uptime
 
-...
+The `uptime` source measures how long the host has been running. It reports a
+single `uptime` event giving the lifetime of the host in seconds.
