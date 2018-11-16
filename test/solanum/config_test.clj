@@ -57,10 +57,10 @@ outputs:
     (with-redefs [config/yaml->clj boom!]
       (is (nil? (#'config/read-file path-a)))))
   (testing "source configuration"
-    (is (nil? (#'config/configure-source {:foo :bar})))
+    (is (nil? (#'config/configure-source :linux {:foo :bar})))
     (is (nil? (source/initialize {:type :???})))
     (with-redefs [solanum.source.core/initialize boom!]
-      (is (nil? (#'config/configure-source {:type :foo})))))
+      (is (nil? (#'config/configure-source :abc {:type :foo})))))
   (testing "output configuration"
     (is (nil? (#'config/configure-output {:foo :bar})))
     (is (nil? (output/initialize {:type :???})))

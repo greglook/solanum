@@ -9,8 +9,9 @@
     [solanum.system.linux :as linux]))
 
 
-(def supported-modes
-  "Set of supported source modes."
+;; ## Measurements
+
+(source/defsupport :memory
   #{:linux :darwin})
 
 
@@ -63,13 +64,13 @@
 ;; ## Load Source
 
 (defrecord MemorySource
-  [mode usage-states swap-states]
+  [usage-states swap-states]
 
   source/Source
 
   (collect-events
     [this]
-    (let [info (case mode
+    (let [info (case (:mode this)
                  :linux (measure-linux-memory)
                  :darwin (measure-darwin-memory))]
       (concat
@@ -91,7 +92,5 @@
 
 (defmethod source/initialize :memory
   [config]
-  (-> config
-      (select-keys [:type :period :usage-states :swap-states])
-      (assoc :mode (sys/detect :memory supported-modes (:mode config) :linux))
-      (map->MemorySource)))
+  (map->MemorySource
+    (select-keys config [:usage-states :swap-states])))

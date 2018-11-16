@@ -9,8 +9,9 @@
     [solanum.system.linux :as linux]))
 
 
-(def supported-modes
-  "Set of supported source modes."
+;; ## Measurements
+
+(source/defsupport :uptime
   #{:linux :darwin})
 
 
@@ -40,13 +41,13 @@
 ;; ## Uptime Source
 
 (defrecord UptimeSource
-  [mode]
+  []
 
   source/Source
 
   (collect-events
     [this]
-    (let [seconds (case mode
+    (let [seconds (case (:mode this)
                     :linux (measure-linux-uptime)
                     :darwin (measure-darwin-uptime))]
       [{:service "uptime"
@@ -56,7 +57,4 @@
 
 (defmethod source/initialize :uptime
   [config]
-  (-> config
-      (select-keys [:type :period])
-      (assoc :mode (sys/detect :uptime supported-modes (:mode config) :linux))
-      (map->UptimeSource)))
+  (map->UptimeSource {}))

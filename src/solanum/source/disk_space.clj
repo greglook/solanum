@@ -8,13 +8,11 @@
     [solanum.system.core :as sys]))
 
 
-(def supported-modes
-  "Set of supported source modes."
+;; ## Measurements
+
+(source/defsupport :disk-space
   #{:linux})
 
-
-
-;; ### Linux
 
 (defn- parse-disk-info
   "Parse a line from `df` into a map with the filesystem name, mount point, and
@@ -63,14 +61,15 @@
                         (source/byte-str (:total data)))})
 
 
+; TODO: support a filter for which filesystems to measure
 (defrecord DiskSpaceSource
-  [mode usage-states]
+  [usage-states]
 
   source/Source
 
   (collect-events
     [this]
-    (let [info (case mode
+    (let [info (case (:mode this)
                  :linux (measure-linux))]
       (into []
             (comp
@@ -82,7 +81,5 @@
 
 (defmethod source/initialize :disk-space
   [config]
-  (-> config
-      (select-keys [:type :period :usage-states])
-      (assoc :mode (sys/detect :disk-space supported-modes (:mode config) :linux))
-      (map->DiskSpaceSource)))
+  (map->DiskSpaceSource
+    (select-keys config [:usage-states])))

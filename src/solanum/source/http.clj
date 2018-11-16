@@ -9,6 +9,8 @@
     [solanum.source.core :as source]))
 
 
+;; ## Measurements
+
 (defn- parse-body
   "Return a parsed response body if the content type is advertized as a known
   data format. Returns nil otherwise."
@@ -93,8 +95,11 @@
         fields))
 
 
+
+;; ## HTTP Source
+
 (defrecord HTTPSource
-  [label url timeout response-checks record-fields]
+  [url label timeout response-checks record-fields]
 
   source/Source
 
@@ -145,8 +150,7 @@
               :response-checks [{:type :status
                                  :values #{200}}]}
              config)
-      (select-keys [:type :period :label
-                    :url :timeout
+      (select-keys [:url :label :timeout
                     :response-checks
                     :record-fields])
       (map->HTTPSource)))

@@ -9,12 +9,11 @@
     [solanum.system.linux :as linux]))
 
 
-(def supported-modes
-  "Set of supported source modes."
+;; ## Measurements
+
+(source/defsupport :cpu
   #{:linux :darwin})
 
-
-;; ### Linux
 
 (defn- stat-jiffies
   "Read the per-core cpu state measurements in jiffies from `/proc/stat`.
@@ -57,8 +56,6 @@
             (map (juxt key (comp relative-vals val)))
             (source/diff-tracker prev data)))))
 
-
-;; ### Darwin
 
 (defn- measure-darwin-cpu
   "Measure CPU utilization on Darwin (OS X) systems using `top`."
@@ -110,13 +107,13 @@
 
 
 (defrecord CPUSource
-  [mode per-core per-state usage-states tracker]
+  [tracker per-core per-state usage-states]
 
   source/Source
 
   (collect-events
     [this]
-    (let [usage (case mode
+    (let [usage (case (:mode this)
                   :linux (measure-linux-cpu tracker)
                   :darwin (measure-darwin-cpu))]
       (concat
@@ -137,10 +134,8 @@
 
 (defmethod source/initialize :cpu
   [config]
-  (-> config
-      (select-keys [:type :period :per-core :per-state :usage-states])
-      (update :per-core boolean)
-      (update :per-state boolean)
-      (assoc :mode (sys/detect :cpu supported-modes (:mode config) :linux)
-             :tracker (atom {}))
-      (map->CPUSource)))
+  (map->CPUSource
+    {:tracker (atom {})
+     :per-core (boolean (:per-core config))
+     :per-state (boolean (:per-state config))
+     :usage-states (:usage-states config)}))
