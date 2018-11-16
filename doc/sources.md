@@ -113,17 +113,47 @@ is healthy or not. Checks may be one of three types:
 
 ## load
 
-...
+The `load` source measures process statistics across the entire host. It reports
+a `process load` event with the one-minute load average, as well as
+`process total` and `process running` events giving the number of processes and
+how many are active.
+
+- `load-states`
+  A map of state names to thresholds. If the value of the load event exceeds the
+  value of a threshold, the event's `state` will be set to match.
 
 
 ## memory
 
-...
+The `memory` source measures the system memory utilization. It reports a
+`memory usage` event with the percentage of the total available RAM used, as
+well as events measuring the proportion of that which is dedicated to buffers
+and operating system caches. If the machine has a swap partition, it will also
+report `swap usage`.
+
+- `usage-states`
+  A map of state names to thresholds. If the value of the usage event exceeds the
+  value of a threshold, the event's `state` will be set to match.
+- `swap-states`
+  A map of state names to thresholds. As above, but for swap usage.
 
 
 ## network
 
-...
+The `network` source measures network interface metrics. By default, it reports
+events for each interface's received and transmitted bytes and packets. It may
+also report more detailed metrics if configured. Each measurement is
+prefixed with `net io ...` and includes an `interface` attribute.
+
+- `interfaces`
+  An explicit list of network interfaces to measure. By default the source will
+  measure all interfaces.
+- `ignore`
+  A list of network interfaces to ignore. By default, this includes only the
+  loopback device `lo`.
+- `detailed`
+  If true, the source will report additional network metrics such as the number
+  of errors seen, packets dropped, compressed and multicast packets, and more.
 
 
 ## process
