@@ -27,10 +27,10 @@ All sources support the following configuration parameters:
 
 ## cpu
 
-The `cpu` source measures processor utilization across the entire machine. It
-may also provide per-core and per-state measurements if more detailed resolution
-is desired. The main event reported is `cpu usage` with the value as the
-percentage of time the cpu spent working.
+This source measures processor utilization across the entire machine. It may
+also provide per-core and per-state measurements if more detailed resolution is
+desired. The main event reported is `cpu usage` with the value as the percentage
+of time the cpu spent working.
 
 - `per-core`
 
@@ -84,10 +84,10 @@ spent on those operations, and overall IO activity.
 **WARNING:** Currently non-functional in native binaries - see
 [#8](https://github.com/greglook/solanum/issues/8).
 
-The `http` source makes requests to a local HTTP endpoint and validates
-properties about the response. This is useful for triggering health-check
-APIs and verifying that services are running properly. The source produces two
-events, `http url time` and `http url health`.
+This source makes requests to a local HTTP endpoint and validates properties
+about the response. This is useful for triggering health-check APIs and
+verifying that services are running properly. The source produces two events,
+`http url time` and `http url health`.
 
 - `url` (required)
 
@@ -143,8 +143,8 @@ is healthy or not. Checks may be one of three types:
 
 ## load
 
-The `load` source measures process statistics across the entire host. It reports
-a `process load` event with the one-minute load average, as well as
+This source measures process statistics across the entire host. It reports a
+`process load` event with the one-minute load average, as well as
 `process total` and `process running` events giving the number of processes and
 how many are active.
 
@@ -156,11 +156,11 @@ how many are active.
 
 ## memory
 
-The `memory` source measures the system memory utilization. It reports a
-`memory usage` event with the percentage of the total available RAM used, as
-well as events measuring the proportion of that which is dedicated to buffers
-and operating system caches. If the machine has a swap partition, it will also
-report `swap usage`.
+This source measures the system memory utilization. It reports a `memory usage`
+event with the percentage of the total available RAM used, as well as events
+measuring the proportion of that which is dedicated to buffers and operating
+system caches. If the machine has a swap partition, it will also report
+`swap usage`.
 
 - `usage-states`
 
@@ -174,10 +174,10 @@ report `swap usage`.
 
 ## network
 
-The `network` source measures network interface metrics. By default, it reports
-events for each interface's received and transmitted bytes and packets. It may
-also report more detailed metrics if configured. Each measurement is
-prefixed with `net io ...` and includes an `interface` attribute.
+This source measures network interface metrics. By default, it reports events
+for each interface's received and transmitted bytes and packets. It may also
+report more detailed metrics if configured. Each measurement is prefixed with
+`net io ...` and includes an `interface` attribute.
 
 - `interfaces`
 
@@ -197,9 +197,9 @@ prefixed with `net io ...` and includes an `interface` attribute.
 
 ## process
 
-The `process` source watches specific processes running on the host to monitor
-whether they are alive. The source reports a `process count` of all running
-processes which match the given pattern.
+This source watches specific processes running on the host to monitor whether
+they are alive. The source reports a `process count` of all running processes
+which match the given pattern.
 
 It also reports two measures of the matched processes' memory usage. The
 `process resident-set bytes` gives the actual physical memory held active by the
@@ -237,9 +237,9 @@ allocated, some of which may be unused or paged out to disk.
 
 ## tcp
 
-The `tcp` source tests that a local port is open and accepting TCP connections.
-It reports a single event, `tcp socket open` with a metric and state of `1`/`ok`
-if the socket is open, or `0`/`critical` if not.
+This source tests that a local port is open and accepting TCP connections. It
+reports a single event, `tcp socket open` with a metric and state of `1`/`ok` if
+the socket is open, or `0`/`critical` if not.
 
 - `port` (required)
 
@@ -259,8 +259,8 @@ if the socket is open, or `0`/`critical` if not.
 
 ## test
 
-The `test` source is a simple generator for exercising Solanum. It generates
-test events with a few bits of random variance.
+This source is a simple generator for exercising Solanum. It generates test
+events with a few bits of random variance.
 
 - `min-count` (default: `1`)
 
@@ -273,5 +273,5 @@ test events with a few bits of random variance.
 
 ## uptime
 
-The `uptime` source measures how long the host has been running. It reports a
-single `uptime` event giving the lifetime of the host in seconds.
+This source measures how long the host has been running. It reports a single
+`uptime` event giving the lifetime of the host in seconds.
