@@ -2,6 +2,7 @@ Solanum
 =======
 
 [![CircleCI](https://circleci.com/gh/greglook/solanum.svg?style=shield&circle-token=c14a7265562fdec8881672070d87d812f076bf8a)](https://circleci.com/gh/greglook/solanum)
+<img align="right" src="doc/logo.png">
 
 Solanum is a simple monitoring daemon which can be configured to collect
 host-level data from a variety of sources. The results can be printed to the
@@ -43,22 +44,28 @@ attributes, sources, and outputs. Config files are provided as command-line
 arguments, and merged together in order to collect the configured sources and
 outputs.
 
-See the [example config](config.yml) in this repo for possible config options.
+See the [example config](example-config.yml) in this repo for some of the
+possible config options.
 
 ### Defaults
 
 The `defaults` section of the config provides common attributes to apply to
 every event. This can be used to provide a common TTL, tags, and more.
 
+**Note:** attributes specified on the command line take precedence over these
+global defaults. In particular, this means that a custom hostname _must_ be set
+on the command line to take effect.
+
 ### Sources
 
 A _source_ is a record which implements a `collect-events` method to return
 metric events. Solanum comes with several metric sources built in, including
 basic host-level monitoring of CPU usage, load, memory, diskstats, network, and
-more.
-
-You can provide your own custom sources, but you'll need to build your own
+more. You can provide your own custom sources, but you'll need to build your own
 uberjar using this project as a dependency.
+
+See the [source docs](doc/sources.md) for information about the available
+source types and their configuration options.
 
 ### Outputs
 
@@ -66,8 +73,8 @@ An _output_ is a destination to report the collected events to. The simplest
 one is the `print` output, which writes each event to STDOUT. This is useful for
 debugging, but you probably won't leave it on for deployed daemons.
 
-The other included choice is the `riemann` output, which sends each event to a
-Riemann monitoring server.
+See the [output docs](doc/outputs.md) for information about the available output
+types and their configuration options.
 
 
 ## License

@@ -21,7 +21,9 @@
       (let [props (doto (java.util.Properties.)
                     (.load props-reader))
             {:strs [groupId artifactId version revision]} props]
-        (format "%s/%s %s (%s)" groupId artifactId version revision)))
+        (format "%s/%s %s (%s)"
+                groupId artifactId version
+                (str/trim-newline revision))))
     "HEAD"))
 
 
@@ -76,7 +78,7 @@
 (defn- register-cleanup!
   "Register a shutdown hook to cleanly terminate the process."
   [scheduler channel writer]
-  ; TODO: this does run on SIGINT, but the app still exits 130
+  ; NOTE: this does run on SIGINT, but the app still exits 130
   (.addShutdownHook
     (Runtime/getRuntime)
     (Thread. (fn cleanup

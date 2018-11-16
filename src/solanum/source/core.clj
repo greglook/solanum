@@ -12,6 +12,40 @@
     "Return a sequence of metrics events collected from the source."))
 
 
+
+;; ## Mode Support
+
+(defmulti supported?
+  "Determine whether the map of config (which should include a `:type` and
+  `:mode` key) represents a supported source.
+
+  Should return true if the mode is supported for this source type, false if
+  not, or nil if the source is not dependent on the underlying system."
+  :type)
+
+
+(defmethod supported? :default
+  [config]
+  ; Assume that sources which do not implement this method do not care what
+  ; type of system they are running on.
+  nil)
+
+
+(defmacro defsupport
+  "Declare source support for a set of types."
+  [source-type modes]
+  `(let [modes# (set ~modes)]
+     (def ~'supported-modes
+       "Set of supported source modes."
+       modes#)
+     (defmethod supported? ~source-type
+       [config#]
+       (contains? modes# (:mode config#)))))
+
+
+
+;; ## Construction
+
 (defmulti initialize
   "Construct a new source from a type keyword."
   :type)

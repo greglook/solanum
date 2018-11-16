@@ -9,8 +9,9 @@
     [solanum.system.linux :as linux]))
 
 
-(def supported-modes
-  "Set of supported source modes."
+;; ## Measurements
+
+(source/defsupport :load
   #{:linux :darwin})
 
 
@@ -56,13 +57,13 @@
 ;; ## Load Source
 
 (defrecord LoadSource
-  [mode load-states]
+  [load-states]
 
   source/Source
 
   (collect-events
     [this]
-    (let [processes (case mode
+    (let [processes (case (:mode this)
                       :linux (measure-linux-load)
                       :darwin (measure-darwin-load))]
       (concat
@@ -83,7 +84,4 @@
 
 (defmethod source/initialize :load
   [config]
-  (-> config
-      (select-keys [:type :period :load-states])
-      (assoc :mode (sys/detect :load supported-modes (:mode config) :linux))
-      (map->LoadSource)))
+  (->LoadSource (:load-states config)))

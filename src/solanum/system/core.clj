@@ -24,13 +24,8 @@
         (log/error ex "Error while determining operating system information")))))
 
 
-(defn detect
+(defn detect-mode
   "Determine what mode to run in for compatibility with the local operating
   system."
-  [source-type supported requested default]
-  (let [mode (or requested (keyword (str/lower-case (:name @os-info))))]
-    (if (contains? supported mode)
-      mode
-      (do (log/warnf "Unsupported %s source mode %s - falling back to %s"
-                     source-type (pr-str mode) default)
-          default))))
+  []
+  (keyword (str/lower-case (:name @os-info))))

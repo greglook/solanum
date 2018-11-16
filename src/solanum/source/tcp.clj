@@ -10,6 +10,8 @@
       SocketTimeoutException)))
 
 
+;; ## Measurements
+
 (defn- test-port
   "Test a TCP port by connecting to it. Returns a vector with a state and
   description."
@@ -31,6 +33,9 @@
         (.close socket)))))
 
 
+
+;; ## TCP Source
+
 (defrecord TCPSource
   [label host port]
 
@@ -51,6 +56,7 @@
   (when-not (:port config)
     (throw (IllegalArgumentException.
              "Cannot initialize TCP source without a port")))
-  (-> (merge {:host "localhost"} config)
-      (select-keys [:type :period :label :host :port])
-      (map->TCPSource)))
+  (map->TCPSource
+    {:label (:label config)
+     :host (:host config "localhost")
+     :port (int (:port config))}))

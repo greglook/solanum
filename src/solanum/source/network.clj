@@ -8,8 +8,9 @@
     [solanum.system.linux :as linux]))
 
 
-(def supported-modes
-  "Set of supported source modes."
+;; ## Measurements
+
+(source/defsupport :network
   #{:linux})
 
 
@@ -17,9 +18,6 @@
   "Stats to show in simple mode."
   #{:rx-bytes :rx-packets :tx-bytes :tx-packets})
 
-
-
-;; ### Linux
 
 (def ^:private linux-net-fields
   "Fields in the net device file."
@@ -64,13 +62,13 @@
 ;; ## Network Source
 
 (defrecord NetworkSource
-  [mode tracker interfaces ignore detailed]
+  [tracker interfaces ignore detailed]
 
   source/Source
 
   (collect-events
     [this]
-    (let [info (case mode
+    (let [info (case (:mode this)
                  :linux (measure-linux-network tracker))]
       (into []
             (comp
@@ -95,11 +93,8 @@
 
 (defmethod source/initialize :network
   [config]
-  (-> (merge {:ignore #{"lo"}} config)
-      (select-keys [:type :period :interfaces :ignore :detailed])
-      (update :detailed boolean)
-      (update :interfaces set)
-      (update :ignore set)
-      (assoc :mode (sys/detect :network supported-modes (:mode config) :linux)
-             :tracker (atom {}))
-      (map->NetworkSource)))
+  (map->NetworkSource
+    {:tracker (atom {})
+     :interfaces (not-empty (set (:interfaces config)))
+     :ignore (not-empty (set (:ignore config #{"lo"})))
+     :detailed (boolean (:detailed config))}))

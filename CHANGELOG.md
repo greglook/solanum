@@ -9,6 +9,21 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ...
 
+## [3.1.1] - 2018-11-15
+
+### Fixed
+- Properly trim version string on Linux platforms.
+- Automatically reconnect Riemann client on send.
+
+### Added
+- The `disk-space` source now supports `usage-states` thresholds.
+- Documented all source and output configuration options.
+
+### Changed
+- OS mode detection is now performed once at startup, and unsupported sources
+  are omitted from the config with a warning. Sources can specify a `mode` in
+  config to override the detected type.
+
 ## [3.1.0] - 2018-11-05
 
 ### Added
@@ -23,6 +38,7 @@ Clojure rewrite.
 
 Final cut of Ruby version.
 
-[Unreleased]: https://github.com/greglook/solanum/compare/3.1.0...HEAD
+[Unreleased]: https://github.com/greglook/solanum/compare/3.1.1...HEAD
+[3.1.1]: https://github.com/greglook/solanum/compare/3.1.0...3.1.1
 [3.1.0]: https://github.com/greglook/solanum/compare/3.0.0...3.1.0
 [3.0.0]: https://github.com/greglook/solanum/compare/2.0.0...3.0.0

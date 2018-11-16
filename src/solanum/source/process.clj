@@ -6,18 +6,14 @@
     [clojure.tools.logging :as log]
     [solanum.source.core :as source]
     [solanum.system.core :as sys]
-    [solanum.system.linux :as linux])
-  (:import
-    java.util.regex.Pattern))
+    [solanum.system.linux :as linux]))
 
 
-(def supported-modes
-  "Set of supported source modes."
+;; ## Measurements
+
+(source/defsupport :process
   #{:linux})
 
-
-
-;; ### Linux
 
 (defn- parse-linux-process
   "Parse a line of output from the `ps` command and return a map with
@@ -70,13 +66,13 @@
 ;; ## Process Source
 
 (defrecord ProcessSource
-  [mode label pattern user min-states max-states]
+  [pattern label user min-states max-states]
 
   source/Source
 
   (collect-events
     [this]
-    (let [processes (case mode
+    (let [processes (case (:mode this)
                       :linux (measure-linux))
           matching (into []
                          (comp
@@ -112,7 +108,6 @@
     (throw (IllegalArgumentException.
              "Cannot initialize process source without a pattern.")))
   (-> config
-      (select-keys [:type :period :label :user :min-states :max-states])
-      (assoc :mode (sys/detect :process supported-modes (:mode config) :linux)
-             :pattern (Pattern/compile (:pattern config)))
+      (select-keys [:pattern :label :user :min-states :max-states])
+      (update :pattern re-pattern)
       (map->ProcessSource)))

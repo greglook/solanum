@@ -8,13 +8,11 @@
     [solanum.system.linux :as linux]))
 
 
-(def supported-modes
-  "Set of supported source modes."
+;; ## Measurements
+
+(source/defsupport :disk-stats
   #{:linux})
 
-
-
-;; ### Linux
 
 (def ^:private linux-disk-fields
   "Fields in the diskstats proc file."
@@ -57,13 +55,13 @@
 ;; ## Disk Stats Source
 
 (defrecord DiskStatsSource
-  [mode tracker devices detailed]
+  [tracker devices detailed]
 
   source/Source
 
   (collect-events
     [this]
-    (let [info (case mode
+    (let [info (case (:mode this)
                  :linux (measure-linux tracker))]
       (into []
             (comp
@@ -96,10 +94,7 @@
 
 (defmethod source/initialize :disk-stats
   [config]
-  (-> config
-      (select-keys [:type :period :devices :detailed])
-      (update :detailed boolean)
-      (update :devices set)
-      (assoc :mode (sys/detect :disk-stats supported-modes (:mode config) :linux)
-             :tracker (atom {}))
-      (map->DiskStatsSource)))
+  (map->DiskStatsSource
+    {:tracker (atom {})
+     :devices (not-empty (set (:devices config)))
+     :detailed (boolean (:detailed config))}))

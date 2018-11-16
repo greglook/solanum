@@ -21,6 +21,7 @@
     [solanum.source.tcp]
     [solanum.source.test]
     [solanum.source.uptime]
+    [solanum.system.core :as sys]
     [solanum.util :as u])
   (:import
     org.yaml.snakeyaml.Yaml))
@@ -87,37 +88,57 @@
 
 (defn- configure-source
   "Construct and start a new metrics source from configuration."
-  [source-config]
+  [mode config]
   (try
-    (if (:type source-config)
-      (source/initialize source-config)
-      (log/warn "Cannot configure source without a type:" (pr-str source-config)))
+    (if (:type config)
+      (let [config (into {:mode mode, :period 60} config)
+            common (select-keys config [:type :mode :period :attributes])]
+        (case (source/supported? config)
+          true
+          (some-> (source/initialize config)
+                  (merge common))
+          nil
+          (some-> (source/initialize config)
+                  (merge common)
+                  (dissoc :mode))
+          (log/warnf "Source %s does not support mode %s"
+                     (name (:type config))
+                     (name (:mode config)))))
+      (log/warn "Cannot configure source without a type:" (pr-str config)))
     (catch Exception ex
-      (log/error ex "Failed to initialize source:" (pr-str source-config)))))
+      (log/error ex "Failed to initialize source:" (pr-str config)))))
 
 
 (defn- configure-output
   "Construct and start a new metrics output from configuration."
-  [output-config]
+  [config]
   (try
-    (if (:type output-config)
-      (output/initialize output-config)
-      (log/warn "Cannot configure output without a type:" (pr-str output-config)))
+    (if (:type config)
+      (output/initialize config)
+      (log/warn "Cannot configure output without a type:" (pr-str config)))
     (catch Exception ex
-      (log/error ex "Failed to initialize output:" (pr-str output-config)))))
+      (log/error ex "Failed to initialize output:" (pr-str config)))))
 
 
 (defn- initialize-plugins
   "Initialize all source and output plugins."
   [config]
-  (-> (into {} config)
-      (update :sources (partial into [] (keep configure-source)))
-      (update :outputs (partial into [] (keep configure-output)))))
+  (let [mode (sys/detect-mode)
+        sources (into []
+                      (keep (partial configure-source mode))
+                      (:sources config))
+        outputs (into []
+                      (keep configure-output)
+                      (:outputs config))]
+    (assoc (into {} config)
+           :sources sources
+           :outputs outputs)))
 
 
 (defn load-files
   "Load multiple files, merge them together, and initialize the plugins."
   [config-paths]
+  ; TODO: warn if defaults include :host
   (->> (map read-file config-paths)
        (reduce merge-config)
        (initialize-plugins)))

@@ -23,7 +23,5 @@
 (defmethod source/initialize :test
   [config]
   (map->TestSource
-    (merge
-      {:min-count 1
-       :max-count 1}
-      (select-keys config [:type :period :min-count :max-count]))))
+    {:min-count (:min-count config 1)
+     :max-count (:max-count config 1)}))
