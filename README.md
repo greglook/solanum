@@ -2,6 +2,7 @@ Solanum
 =======
 
 [![CircleCI](https://circleci.com/gh/greglook/solanum.svg?style=shield&circle-token=c14a7265562fdec8881672070d87d812f076bf8a)](https://circleci.com/gh/greglook/solanum)
+<img align="right" src="doc/logo.png">
 
 Solanum is a simple monitoring daemon which can be configured to collect
 host-level data from a variety of sources. The results can be printed to the
