@@ -1,4 +1,4 @@
-(defproject mvxcvi/solanum "3.1.1-SNAPSHOT"
+(defproject mvxcvi/solanum "3.1.1"
   :description "Local host monitoring daemon."
   :url "https://github.com/greglook/solanum"
   :license {:name "Public Domain"
