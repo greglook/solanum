@@ -55,10 +55,11 @@ every event. This can be used to provide a common TTL, tags, and more.
 A _source_ is a record which implements a `collect-events` method to return
 metric events. Solanum comes with several metric sources built in, including
 basic host-level monitoring of CPU usage, load, memory, diskstats, network, and
-more.
-
-You can provide your own custom sources, but you'll need to build your own
+more. You can provide your own custom sources, but you'll need to build your own
 uberjar using this project as a dependency.
+
+See the [source docs](doc/sources.md) for information about the available
+source types and their configuration options.
 
 ### Outputs
 
@@ -66,8 +67,8 @@ An _output_ is a destination to report the collected events to. The simplest
 one is the `print` output, which writes each event to STDOUT. This is useful for
 debugging, but you probably won't leave it on for deployed daemons.
 
-The other included choice is the `riemann` output, which sends each event to a
-Riemann monitoring server.
+See the [output docs](doc/outputs.md) for information about the available output
+types and their configuration options.
 
 
 ## License
