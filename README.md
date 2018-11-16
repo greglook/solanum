@@ -44,7 +44,8 @@ attributes, sources, and outputs. Config files are provided as command-line
 arguments, and merged together in order to collect the configured sources and
 outputs.
 
-See the [example config](config.yml) in this repo for possible config options.
+See the [example config](example-config.yml) in this repo for some of the
+possible config options.
 
 ### Defaults
 
