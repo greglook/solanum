@@ -9,6 +9,10 @@ version := $(shell grep defproject project.clj | cut -d ' ' -f 3 | tr -d \")
 platform := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 release_name := solanum_$(version)_$(platform)
 
+ifndef GRAAL_PATH
+$(error GRAAL_PATH is not set)
+endif
+
 # TODO: fetch graal?
 setup:
 	lein deps
