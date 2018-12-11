@@ -26,7 +26,7 @@ lint:
 test:
 	lein test
 
-$(uberjar_path): src/**/* resources/**/* svm/java/**/*
+$(uberjar_path): src/**/* resources/* svm/java/**/*
 	lein with-profile +svm uberjar
 
 uberjar: $(uberjar_path)
