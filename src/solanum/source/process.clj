@@ -19,7 +19,7 @@
   "Parse a line of output from the `ps` command and return a map with
   information about each process."
   [line]
-  (when-let [[_ pid rss vsize state user group lstart command] (re-matches #"(\d+) +(\d+) +(\d+) +(.) +(\S+) +(\S+) +(\w+ +\w+ +\d+ +\d\d:\d\d:\d\d \d+) +(.+)" line)]
+  (when-let [[_ pid rss vsize state user group lstart command] (re-matches #" *(\d+) +(\d+) +(\d+) +(.) +(\S+) +(\S+) +(\w+ +\w+ +\d+ +\d\d:\d\d:\d\d \d+) +(.+)" line)]
     {:pid (Long/parseLong pid)
      :rss (Long/parseLong rss)
      :vsize (Long/parseLong vsize)
@@ -41,7 +41,7 @@
 (defn- measure-linux
   "Measure process stats on a Linux system."
   []
-  (let [result (shell/sh "ps" "axo" "pid=,rss=,vsize=,state=,user=,group=,lstart=,command=")]
+  (let [result (shell/sh "ps" "axo" "pid=,rss=,vsize=,state=,user:32=,group:32=,lstart=,command=")]
     (if (zero? (:exit result))
       ; IDEA: capture process fd usage and thread counts?
       (keep parse-linux-process (str/split (:out result) #"\n"))

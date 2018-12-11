@@ -4,9 +4,14 @@ default: package
 
 .PHONY: setup clean lint test uberjar package
 
+uberjar_path := target/uberjar/solanum.jar
 version := $(shell grep defproject project.clj | cut -d ' ' -f 3 | tr -d \")
 platform := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 release_name := solanum_$(version)_$(platform)
+
+ifndef GRAAL_PATH
+$(error GRAAL_PATH is not set)
+endif
 
 # TODO: fetch graal?
 setup:
@@ -21,15 +26,15 @@ lint:
 test:
 	lein test
 
-target/uberjar/solanum.jar: src/* resources/* svm/java/*
+$(uberjar_path): src/**/* resources/**/* svm/java/**/*
 	lein with-profile +svm uberjar
 
-uberjar: target/uberjar/solanum.jar
+uberjar: $(uberjar_path)
 
 # TODO: --static ?
 # --enable-url-protocols=http,https
 solanum: reflection-config := svm/reflection-config.json
-solanum: target/uberjar/solanum.jar $(reflection-config)
+solanum: $(uberjar_path) $(reflection-config)
 	$(GRAAL_PATH)/bin/native-image \
 	    --report-unsupported-elements-at-runtime \
 	    --delay-class-initialization-to-runtime=io.netty.handler.ssl.ReferenceCountedOpenSslEngine \
