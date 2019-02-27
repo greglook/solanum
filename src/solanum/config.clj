@@ -63,16 +63,14 @@
 
 (defn- read-file
   "Load some configuration from a file."
-  [path]
-  (let [file (io/file path)]
-    (if (.exists file)
-      (try
-        (let [parser (Yaml.)
-              data (.load parser (slurp file))]
-          (walk/prewalk yaml->clj data))
-        (catch Exception ex
-          (log/error ex "Failed to load configuration from" path)))
-      (log/warn "Can't load configuration from nonexistent file" path))))
+  [file]
+  (log/debug "Reading configuration file" (str file))
+  (try
+    (let [parser (Yaml.)
+          data (.load parser (slurp file))]
+      (walk/prewalk yaml->clj data))
+    (catch Exception ex
+      (log/error ex "Failed to load configuration from" (str file)))))
 
 
 (defn- merge-config
@@ -135,10 +133,38 @@
            :outputs outputs)))
 
 
+(defn- yaml-file?
+  "True if the file or path appears to be a YAML file."
+  [file]
+  (or (str/ends-with? (str file) ".yml")
+      (str/ends-with? (str file) ".yaml")))
+
+
+(defn- select-configs
+  "Select a sequence of configuration files located using the given arguments.
+  If the argument is a regular file, it is returned as a single-element vector.
+  If it is a directory, all `*.yml` and `*.yaml` files in the directory are
+  selected. Otherwise, the result is nil."
+  [path]
+  (let [file (io/file path)]
+    (cond
+      (not (.exists file))
+      (log/warn "Can't load configuration from nonexistent file" path)
+
+      (.isDirectory file)
+      (sort (filter yaml-file? (.listFiles file)))
+
+      :else
+      [file])))
+
+
 (defn load-files
   "Load multiple files, merge them together, and initialize the plugins."
   [config-paths]
   ; TODO: warn if defaults include :host
-  (->> (map read-file config-paths)
-       (reduce merge-config)
-       (initialize-plugins)))
+  (->>
+    config-paths
+    (mapcat select-configs)
+    (map read-file)
+    (reduce merge-config)
+    (initialize-plugins)))

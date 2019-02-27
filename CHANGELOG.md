@@ -7,7 +7,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+### Added
+- Solanum will accept directory paths as command-line arguments and expand them
+  to load all contained `*.yml` and `*.yaml` files.
+  [#11](//github.com/greglook/solanum/issues/11)
 
 ## [3.1.2] - 2018-12-11
 
