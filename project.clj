@@ -1,4 +1,4 @@
-(defproject mvxcvi/solanum "3.1.2"
+(defproject mvxcvi/solanum "3.2.0"
   :description "Local host monitoring daemon."
   :url "https://github.com/greglook/solanum"
   :license {:name "Public Domain"
@@ -31,7 +31,8 @@
 
   :profiles
   {:repl
-   {:source-paths ["dev"]
+   {:pedantic? false
+    :source-paths ["dev"]
     :dependencies
     [[clj-stacktrace "0.2.8"]
      [org.clojure/tools.namespace "0.2.11"]]
@@ -40,7 +41,7 @@
    :svm
    {:java-source-paths ["svm/java"]
     :dependencies
-    [[com.oracle.substratevm/svm "1.0.0-rc8" :scope "provided"]]}
+    [[com.oracle.substratevm/svm "1.0.0-rc14" :scope "provided"]]}
 
    :uberjar
    {:target-path "target/uberjar"

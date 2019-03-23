@@ -53,7 +53,6 @@ outputs:
 (deftest config-errors
   (write-configs!)
   (testing "file reading"
-    (is (nil? (#'config/read-file "target/test/not-a-file.yml")))
     (with-redefs [config/yaml->clj boom!]
       (is (nil? (#'config/read-file path-a)))))
   (testing "source configuration"

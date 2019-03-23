@@ -137,10 +137,10 @@
 (defn -main
   "Main entry point."
   [& args]
-  (let [parse (cli/parse-opts args cli-options)
-        config-paths (parse :arguments)
-        options (parse :options)]
-    (when-let [errors (parse :errors)]
+  (let [parsed (cli/parse-opts args cli-options)
+        config-paths (parsed :arguments)
+        options (parsed :options)]
+    (when-let [errors (parsed :errors)]
       (binding [*out* *err*]
         (run! println errors)
         (System/exit 1)))
@@ -151,7 +151,7 @@
     (when (or (:help options) (empty? config-paths))
       (println "Usage: solanum [options] <config.yml> [config2.yml ...]")
       (newline)
-      (println (parse :summary))
+      (println (parsed :summary))
       (flush)
       (System/exit (if (:help options) 0 1)))
     (let [config (cfg/load-files config-paths)]

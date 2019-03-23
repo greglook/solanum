@@ -9,6 +9,16 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ...
 
+## [3.2.0] - 2019-03-22
+
+### Added
+- The daemon will accept directory paths as command-line arguments and expand
+  them to load all contained `*.yml` and `*.yaml` files.
+  [#11](//github.com/greglook/solanum/issues/11)
+- New `shell` source allows for arbitrary command execution to produce metrics
+  in a flexible manner.
+  [#13](//github.com/greglook/solanum/issues/13)
+
 ## [3.1.2] - 2018-12-11
 
 ### Fixed
@@ -45,7 +55,8 @@ Clojure rewrite.
 
 Final cut of Ruby version.
 
-[Unreleased]: https://github.com/greglook/solanum/compare/3.1.2...HEAD
+[Unreleased]: https://github.com/greglook/solanum/compare/3.2.0...HEAD
+[3.2.0]: https://github.com/greglook/solanum/compare/3.1.2...3.2.0
 [3.1.2]: https://github.com/greglook/solanum/compare/3.1.1...3.1.2
 [3.1.1]: https://github.com/greglook/solanum/compare/3.1.0...3.1.1
 [3.1.0]: https://github.com/greglook/solanum/compare/3.0.0...3.1.0

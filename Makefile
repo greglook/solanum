@@ -13,7 +13,6 @@ ifndef GRAAL_PATH
 $(error GRAAL_PATH is not set)
 endif
 
-# TODO: fetch graal?
 setup:
 	lein deps
 
@@ -26,18 +25,22 @@ lint:
 test:
 	lein test
 
-$(uberjar_path): src/**/* resources/**/* svm/java/**/*
+$(uberjar_path): src/**/* resources/* svm/java/**/*
 	lein with-profile +svm uberjar
 
 uberjar: $(uberjar_path)
 
-# TODO: --static ?
+# TODO: further options
+# --static
 # --enable-url-protocols=http,https
 solanum: reflection-config := svm/reflection-config.json
 solanum: $(uberjar_path) $(reflection-config)
 	$(GRAAL_PATH)/bin/native-image \
+	    --allow-incomplete-classpath \
 	    --report-unsupported-elements-at-runtime \
+	    --delay-class-initialization-to-runtime=io.netty.handler.ssl.ConscryptAlpnSslEngine \
 	    --delay-class-initialization-to-runtime=io.netty.handler.ssl.ReferenceCountedOpenSslEngine \
+	    --delay-class-initialization-to-runtime=io.netty.util.internal.logging.Log4JLogger \
 	    -H:ReflectionConfigurationFiles=$(reflection-config) \
 	    -J-Xms3G -J-Xmx3G \
 	    --no-server \
