@@ -235,6 +235,33 @@ allocated, some of which may be unused or paged out to disk.
   to ensure that _no more than_ a certain number of processes are running.
 
 
+## shell
+
+This source provides an escape hatch if some metrics collection is not supported
+directly by the daemon. It periodically executes a shell command and interprets
+the response as metrics events.
+
+- `command` (required)
+
+  A command to execute with the shell in order to collect the metrics data.
+
+- `shell` (default: `$SHELL`)
+
+  The shell to use to execute the command.
+
+The command is expected to return some output which conforms to the following
+line protocol:
+
+```
+<service>\t<metric>[\t<attribute>=<value>][\t...]
+```
+
+The first entry on the line should be the measurement's service name, followed
+by a tab `\t` character, then the numeric metric value. The value may be an
+integer or a floating-point number. Following that may be zero or more
+attribute-value pairs, similarly separated by tabs.
+
+
 ## tcp
 
 This source tests that a local port is open and accepting TCP connections. It
