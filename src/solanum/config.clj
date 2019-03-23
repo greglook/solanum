@@ -18,6 +18,7 @@
     [solanum.source.memory]
     [solanum.source.network]
     [solanum.source.process]
+    [solanum.source.shell]
     [solanum.source.tcp]
     [solanum.source.test]
     [solanum.source.uptime]
