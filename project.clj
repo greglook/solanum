@@ -31,7 +31,8 @@
 
   :profiles
   {:repl
-   {:source-paths ["dev"]
+   {:pedantic? false
+    :source-paths ["dev"]
     :dependencies
     [[clj-stacktrace "0.2.8"]
      [org.clojure/tools.namespace "0.2.11"]]
