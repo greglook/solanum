@@ -9,6 +9,14 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ...
 
+## [3.2.1] - 2019-05-08
+
+### Fixed
+- The Riemann TCP client reconnection logic works properly on broken connections
+  now.
+  [#14](//github.com/greglook/solanum/issues/14)
+  [#15](//github.com/greglook/solanum/pull/15)
+
 ## [3.2.0] - 2019-03-22
 
 ### Added
@@ -55,7 +63,8 @@ Clojure rewrite.
 
 Final cut of Ruby version.
 
-[Unreleased]: https://github.com/greglook/solanum/compare/3.2.0...HEAD
+[Unreleased]: https://github.com/greglook/solanum/compare/3.2.1...HEAD
+[3.2.1]: https://github.com/greglook/solanum/compare/3.2.0...3.2.1
 [3.2.0]: https://github.com/greglook/solanum/compare/3.1.2...3.2.0
 [3.1.2]: https://github.com/greglook/solanum/compare/3.1.1...3.1.2
 [3.1.1]: https://github.com/greglook/solanum/compare/3.1.0...3.1.1
