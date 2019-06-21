@@ -7,7 +7,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+### Added
+- The daemon includes an `--error-limit` option which will quit the process with
+  an error code if too many write errors are seen.
 
 ## [3.2.1] - 2019-05-08
 
