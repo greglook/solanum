@@ -9,6 +9,14 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ...
 
+## [3.2.2] - 2019-06-24
+
+### Added
+- The daemon includes an `--error-limit` option which will quit the process with
+  an error code if too many write errors are seen. This is useful for handling
+  some edge cases where the client cannot successfully reconnect to Riemann
+  after the server restarts.
+
 ## [3.2.1] - 2019-05-08
 
 ### Fixed
@@ -63,7 +71,8 @@ Clojure rewrite.
 
 Final cut of Ruby version.
 
-[Unreleased]: https://github.com/greglook/solanum/compare/3.2.1...HEAD
+[Unreleased]: https://github.com/greglook/solanum/compare/3.2.2...HEAD
+[3.2.2]: https://github.com/greglook/solanum/compare/3.2.1...3.2.2
 [3.2.1]: https://github.com/greglook/solanum/compare/3.2.0...3.2.1
 [3.2.0]: https://github.com/greglook/solanum/compare/3.1.2...3.2.0
 [3.1.2]: https://github.com/greglook/solanum/compare/3.1.1...3.1.2

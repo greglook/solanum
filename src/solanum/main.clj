@@ -36,6 +36,12 @@
       (log/warn "Failed to resolve local hostname:" (pr-str (:err result))))))
 
 
+(defn- parse-unsigned-int
+  "Parse a string as an unsigned integer."
+  [s]
+  (Integer/parseUnsignedInt s))
+
+
 (defn- parse-attr-opt
   "Parse an attribute option and add it to the option map."
   [opts id arg]
@@ -56,20 +62,22 @@
     :default-desc ""
     :assoc-fn #(update %1 %2 conj %3)]
    [nil "--ttl SECONDS" "Default TTL for events"
-    :parse-fn #(Integer/parseInt %)
+    :parse-fn parse-unsigned-int
     :default 60]
    [nil "--batch-delay MILLISECONDS" "Maximum duration to wait for events in a batch"
-    :parse-fn #(Integer/parseInt %)
+    :parse-fn parse-unsigned-int
     :default 1000]
    [nil "--batch-size COUNT" "Size threshold for sending a batch of events"
-    :parse-fn #(Integer/parseInt %)
+    :parse-fn parse-unsigned-int
     :default 50]
+   [nil "--error-limit COUNT" "Exit the daemon if more than this many write errors occur"
+    :parse-fn parse-unsigned-int]
    [nil "--test" "Run each source a fixed number of times, record the events, then exit."]
    [nil "--test-count N" "When in test mode, collect each source N times."
-    :parse-fn #(Integer/parseInt %)
+    :parse-fn parse-unsigned-int
     :default 1]
    [nil "--test-delay SECONDS" "When in test mode, sleep this long between collections."
-    :parse-fn #(Integer/parseInt %)
+    :parse-fn parse-unsigned-int
     :default 1]
    [nil  "--version" "Print program version information."]
    ["-h" "--help" "Show help and usage information."]])
@@ -111,8 +119,9 @@
         scheduler (scheduler/start! defaults (:sources config) channel)
         writer (writer/start! channel
                               (:outputs config)
-                              (:batch-delay options)
-                              (:batch-size options))]
+                              {:max-delay (:batch-delay options)
+                               :max-size (:batch-size options)
+                               :max-errors (:error-limit options)})]
     ; Register cleanup work.
     (register-cleanup! scheduler channel writer)
     ; Block while the threads do their thing.
