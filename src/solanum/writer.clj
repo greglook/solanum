@@ -17,7 +17,6 @@
           [output]
           (try
             (log/debug "Writing" (count events) "to" output)
-            (throw (RuntimeException. "BOOM"))
             (output/write-events output events)
             (catch InterruptedException ie
               (throw ie))
