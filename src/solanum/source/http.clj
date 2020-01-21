@@ -68,9 +68,9 @@
                         (str/join "." key-path)
                         (pr-str value))]
           [false (format "%s: %s is not in %s"
-                        (str/join "." key-path)
-                        (pr-str value)
-                        (str/join "/" (sort acceptable)))]))
+                         (str/join "." key-path)
+                         (pr-str value)
+                         (str/join "/" (sort acceptable)))]))
       [false (format "Body content %s is not parseable for data check"
                      (get-in response [:headers "content-type"]))])
 

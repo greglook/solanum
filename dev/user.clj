@@ -11,9 +11,9 @@
     [clojure.tools.namespace.repl :refer [refresh]]
     [solanum.channel :as chan]
     [solanum.config :as cfg]
+    [solanum.output.core :as output]
     [solanum.scheduler :as scheduler]
     [solanum.source.core :as source]
-    [solanum.output.core :as output]
     [solanum.writer :as writer]))
 
 
