@@ -1,11 +1,11 @@
 (ns solanum.source.http
   "Metrics source that checks the availability of a local TCP port."
   (:require
-    [clj-http.lite.client :as http]
     [clojure.data.json :as json]
     [clojure.edn :as edn]
     [clojure.string :as str]
     [clojure.tools.logging :as log]
+    [org.httpkit.client :as http]
     [solanum.source.core :as source]))
 
 
@@ -106,27 +106,38 @@
     [_]
     (let [elapsed (source/stopwatch)]
       (try
-        (let [resp (http/get url {:throw-exceptions false
-                                  :socket-timeout 1000
-                                  :conn-timeout timeout})
-              data (delay (parse-body resp))
-              checks (mapv (partial check-response (assoc resp :data data))
-                           response-checks)
-              healthy? (every? (comp true? first) checks)]
+        (let [resp @(http/request
+                      {:url url
+                       :method :get
+                       :connect-timeout 1000
+                       :idle-timeout timeout})]
           [{:service "http url time"
             :label (or label url)
             :metric @elapsed}
-           (merge
-             (when (seq record-fields)
-               (collect-fields record-fields @data))
+           (if-let [err (:error resp)]
+             ;; Client-side error while making request.
+             ;; TODO: what is error?
              {:service "http url health"
               :label (or label url)
-              :metric (if healthy? 1 0)
-              :state (if healthy? "ok" "critical")
-              :description (format "Checked %s in %.1f ms:\n%s"
-                                   (or label url)
-                                   @elapsed
-                                   (str/join "\n" (map second checks)))})])
+              :metric 0
+              :state "critical"
+              :description (format "Error while checking HTTP source: %s" err)}
+             ;; Check valid response.
+             (let [data (delay (parse-body resp))
+                   checks (mapv (partial check-response (assoc resp :data data))
+                                response-checks)
+                   healthy? (every? (comp true? first) checks)]
+               (merge
+                 (when (seq record-fields)
+                   (collect-fields record-fields @data))
+                 {:service "http url health"
+                  :label (or label url)
+                  :metric (if healthy? 1 0)
+                  :state (if healthy? "ok" "critical")
+                  :description (format "Checked %s in %.1f ms:\n%s"
+                                       (or label url)
+                                       @elapsed
+                                       (str/join "\n" (map second checks)))})))])
         (catch Exception ex
           [{:service "http url time"
             :label (or label url)
@@ -137,7 +148,7 @@
             :state "critical"
             :description (format "%s: %s"
                                  (.getSimpleName (class ex))
-                                 (.getMessage ex))}])))))
+                                 (ex-message ex))}])))))
 
 
 (defmethod source/initialize :http
@@ -149,7 +160,9 @@
               :response-checks [{:type :status
                                  :values #{200}}]}
              config)
-      (select-keys [:url :label :timeout
+      (select-keys [:url
+                    :label
+                    :timeout
                     :response-checks
                     :record-fields])
       (map->HTTPSource)))

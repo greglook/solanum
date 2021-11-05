@@ -16,8 +16,7 @@
    [org.clojure/tools.cli "1.0.206"]
    [org.clojure/tools.logging "1.1.0"]
    [ch.qos.logback/logback-classic "1.2.6"]
-   ;; TODO: switch to http-kit?
-   [clj-http-lite "0.3.0"]
+   [http-kit "2.5.3"]
    [org.yaml/snakeyaml "1.29"]
    [riemann-clojure-client "0.5.1"]]
 
