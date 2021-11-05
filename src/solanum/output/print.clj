@@ -20,7 +20,7 @@
   output/Output
 
   (write-events
-    [this events]
+    [_ events]
     (run! print-event events)
     (flush)))
 

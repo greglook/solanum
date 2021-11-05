@@ -4,8 +4,7 @@
     [clojure.java.shell :as shell]
     [clojure.string :as str]
     [clojure.tools.logging :as log]
-    [solanum.source.core :as source]
-    [solanum.system.core :as sys]))
+    [solanum.source.core :as source]))
 
 
 ;; ## Measurements
@@ -19,7 +18,7 @@
   usage info."
   [line]
   (let [columns (str/split (str/trim line) #"\s+")
-        [filesystem total used available capacity mount] columns
+        [filesystem total used _available _capacity mount] columns
         total (Long/parseLong total)
         used (Long/parseLong used)]
     {:filesystem filesystem

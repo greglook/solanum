@@ -43,7 +43,7 @@
   output/Output
 
   (write-events
-    [this events]
+    [_ events]
     (when-not (riemann/connected? client)
       (riemann/connect! client))
     @(riemann/send-events client (prepare-batch events))))

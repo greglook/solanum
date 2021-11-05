@@ -2,9 +2,7 @@
   "Metrics source that measures network IO."
   (:require
     [clojure.string :as str]
-    [clojure.tools.logging :as log]
     [solanum.source.core :as source]
-    [solanum.system.core :as sys]
     [solanum.system.linux :as linux]))
 
 

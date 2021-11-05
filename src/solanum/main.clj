@@ -29,7 +29,7 @@
 
 (defn- load-hostname
   "Look up the name of the local host."
-  [ctx]
+  [_]
   (let [result (shell/sh "hostname")]
     (if (zero? (:exit result))
       (str/trim-newline (:out result))

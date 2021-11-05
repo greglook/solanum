@@ -103,7 +103,7 @@
   source/Source
 
   (collect-events
-    [this]
+    [_]
     (let [elapsed (source/stopwatch)]
       (try
         (let [resp (http/get url {:throw-exceptions false

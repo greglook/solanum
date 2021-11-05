@@ -1,6 +1,6 @@
 (ns solanum.source.core-test
   (:require
-    [clojure.test :refer :all]
+    [clojure.test :refer [deftest testing is]]
     [solanum.source.core :as source]))
 
 

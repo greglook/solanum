@@ -2,9 +2,7 @@
   "Metrics source that measures system memory usage."
   (:require
     [clojure.string :as str]
-    [clojure.tools.logging :as log]
     [solanum.source.core :as source]
-    [solanum.system.core :as sys]
     [solanum.system.darwin :as darwin]
     [solanum.system.linux :as linux]))
 
@@ -22,7 +20,7 @@
         info (into {}
                    (map (fn parse-line
                           [line]
-                          (let [[measure amount unit] (str/split line #":? +")]
+                          (let [[measure amount _unit] (str/split line #":? +")]
                             [measure (* 1024 (Long/parseLong amount))])))
                    lines)
         total (get info "MemTotal")]
@@ -54,9 +52,9 @@
                        (let [exp (* 10 (str/index-of "BKMGT" unit))
                              scale (bit-shift-left 1 exp)]
                          (* (Long/parseLong amount) scale)))
-          [used wired unused] (->> (rest mem-line)
-                                   (partition 2)
-                                   (map byte-scale))]
+          [used _wired unused] (->> (rest mem-line)
+                                    (partition 2)
+                                    (map byte-scale))]
       {:usage (double (/ used (+ used unused)))})))
 
 

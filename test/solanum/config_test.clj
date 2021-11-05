@@ -1,11 +1,11 @@
 (ns solanum.config-test
   (:require
     [clojure.java.io :as io]
-    [clojure.test :refer :all]
+    [clojure.test :refer [deftest testing is]]
     [solanum.config :as config]
     [solanum.output.core :as output]
     [solanum.source.core :as source]
-    [solanum.test-util :refer :all]))
+    [solanum.test-util :refer [boom!]]))
 
 
 (def path-a "target/test/config-a.yml")

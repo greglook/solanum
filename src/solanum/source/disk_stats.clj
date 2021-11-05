@@ -2,9 +2,7 @@
   "Metrics source that measures the IO utilization of a host's block devices."
   (:require
     [clojure.string :as str]
-    [clojure.tools.logging :as log]
     [solanum.source.core :as source]
-    [solanum.system.core :as sys]
     [solanum.system.linux :as linux]))
 
 
@@ -26,7 +24,7 @@
   a map of stat keys to numeric counter values."
   [line]
   (let [columns (str/split (str/trim line) #"\s+")
-        [major minor device] (take 3 columns)
+        [_major _minor device] (take 3 columns)
         counters (->> (drop 3 columns)
                       (map #(Long/parseLong %))
                       (zipmap linux-disk-fields))]

@@ -53,7 +53,7 @@
                 (recur (long (+ write-errors errors)) (System/nanoTime) []))
               ;; Keep aggregating.
               (recur write-errors last-send batch)))))
-      (catch InterruptedException ie
+      (catch InterruptedException _
         ;; Exit cleanly
         nil))))
 

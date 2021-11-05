@@ -5,7 +5,6 @@
     [clojure.string :as str]
     [clojure.tools.logging :as log]
     [solanum.source.core :as source]
-    [solanum.system.core :as sys]
     [solanum.system.linux :as linux]))
 
 
@@ -55,5 +54,5 @@
 
 
 (defmethod source/initialize :uptime
-  [config]
+  [_]
   (map->UptimeSource {}))

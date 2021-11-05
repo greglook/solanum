@@ -24,7 +24,7 @@
 
 
 (defmethod supported? :default
-  [config]
+  [_config]
   ;; Assume that sources which do not implement this method do not care what
   ;; type of system they are running on.
   nil)

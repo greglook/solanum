@@ -2,9 +2,7 @@
   "Metrics source that measures process load."
   (:require
     [clojure.string :as str]
-    [clojure.tools.logging :as log]
     [solanum.source.core :as source]
-    [solanum.system.core :as sys]
     [solanum.system.darwin :as darwin]
     [solanum.system.linux :as linux]))
 
@@ -19,7 +17,7 @@
   "Measure the process load on a linux system."
   []
   (let [line (linux/read-proc-file "/proc/loadavg")
-        [load-1m load-5m load-15m run-frac last-pid] (str/split line #" +")
+        [load-1m load-5m load-15m run-frac _last-pid] (str/split line #" +")
         [running total] (str/split run-frac #"/" 2)]
     {:info line
      :load (mapv #(Double/parseDouble %) [load-1m load-5m load-15m])

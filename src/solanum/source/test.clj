@@ -10,10 +10,10 @@
   source/Source
 
   (collect-events
-    [this]
+    [_]
     (mapv
       (fn ->event
-        [i]
+        [_]
         {:service (str "test " (rand-nth ["foo" "bar" "baz"]))
          :metric (rand 100.0)
          :description (rand-nth ["A" "B" "C"])})

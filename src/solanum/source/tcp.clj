@@ -1,7 +1,6 @@
 (ns solanum.source.tcp
   "Metrics source that checks the availability of a local TCP port."
   (:require
-    [clojure.tools.logging :as log]
     [solanum.source.core :as source])
   (:import
     (java.net
@@ -21,14 +20,14 @@
     (try
       (.connect socket address (long timeout))
       [:ok (format "TCP port %d is open on %s" port host)]
-      (catch SocketTimeoutException ex
+      (catch SocketTimeoutException _
         [:critical (format "Timed out connecting to TCP port %d on %s"
                            port host)])
       (catch Exception ex
         [:critical (format "Error connecting to TCP port %d on %s\n%s: %s"
                            port host
                            (.getName (class ex))
-                           (.getMessage ex))])
+                           (ex-message ex))])
       (finally
         (.close socket)))))
 
@@ -41,7 +40,7 @@
   source/Source
 
   (collect-events
-    [this]
+    [_]
     (let [[state desc] (test-port host port 1000)]
       [{:service "tcp socket open"
         :port (str (or label port))

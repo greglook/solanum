@@ -59,7 +59,7 @@
   source/Source
 
   (collect-events
-    [this]
+    [_]
     (let [result (shell/sh shell "-s" :in command)]
       (if (zero? (:exit result))
         (->> (:out result)

@@ -107,7 +107,7 @@
                 (log/error ex "Failure while running scheduler logic")
                 (Thread/sleep 500)))
             (recur))))
-      (catch InterruptedException ie
+      (catch InterruptedException _
         ;; Exit cleanly
         nil))))
 

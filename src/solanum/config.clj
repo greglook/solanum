@@ -2,7 +2,6 @@
   "Configuration loading functions."
   (:require
     [clojure.java.io :as io]
-    [clojure.spec.alpha :as s]
     [clojure.string :as str]
     [clojure.tools.logging :as log]
     [clojure.walk :as walk]
