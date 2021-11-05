@@ -60,7 +60,7 @@
 (defn- measure-darwin-cpu
   "Measure CPU utilization on Darwin (OS X) systems using `top`."
   []
-  ; get process list with `ps -eo pcpu,pid,comm | sort -nrb -k1 | head -10`
+  ;; get process list with `ps -eo pcpu,pid,comm | sort -nrb -k1 | head -10`
   (let [head-lines (:lines (darwin/read-top))
         cpu-line (first (filter #(str/starts-with? % "CPU usage:")
                                 head-lines))]
@@ -72,7 +72,6 @@
              (re-seq #" (\d+\.\d+)% (\w+),?" cpu-line))}
       (log/warn "Couldn't find CPU usage information in top header:"
                 (pr-str head-lines)))))
-
 
 
 ;; ## CPU Source
@@ -117,16 +116,16 @@
                   :linux (measure-linux-cpu tracker)
                   :darwin (measure-darwin-cpu))]
       (concat
-        ; Overall usage stat.
+        ;; Overall usage stat.
         (when-let [pct (some->> (get-in usage ["cpu" :idle]) (- 1.0))]
-          ; TODO: add process listing to this event
+          ;; TODO: add process listing to this event
           [{:service "cpu usage"
             :metric pct
             :state (source/state-over usage-states pct :ok)}])
-        ; Overall per-state metrics.
+        ;; Overall per-state metrics.
         (when per-state
           (map cpu-state-event (usage "cpu")))
-        ; Per-core metrics
+        ;; Per-core metrics
         (when per-core
           (mapcat (partial core-events per-state)
                   (dissoc usage "cpu")))))))

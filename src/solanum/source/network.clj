@@ -58,7 +58,6 @@
       (source/diff-tracker prev data))))
 
 
-
 ;; ## Network Source
 
 (defrecord NetworkSource

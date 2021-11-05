@@ -51,7 +51,6 @@
       (source/diff-tracker prev data))))
 
 
-
 ;; ## Disk Stats Source
 
 (defrecord DiskStatsSource

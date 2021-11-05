@@ -42,7 +42,6 @@
       (log/warn "Failed to measure disk space:" (pr-str (:err result))))))
 
 
-
 ;; ## Disk Space Source
 
 (defn- usage-event
@@ -61,7 +60,7 @@
                         (source/byte-str (:total data)))})
 
 
-; TODO: support a filter for which filesystems to measure
+;; TODO: support a filter for which filesystems to measure
 (defrecord DiskSpaceSource
   [usage-states]
 
@@ -73,7 +72,7 @@
                  :linux (measure-linux))]
       (into []
             (comp
-              ; Only monitor filesystems which map to a real block device.
+              ;; Only monitor filesystems which map to a real block device.
               (filter #(str/includes? (:filesystem %) "/"))
               (map (partial usage-event usage-states)))
             info))))

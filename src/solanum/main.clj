@@ -86,7 +86,7 @@
 (defn- register-cleanup!
   "Register a shutdown hook to cleanly terminate the process."
   [scheduler channel writer]
-  ; NOTE: this does run on SIGINT, but the app still exits 130
+  ;; NOTE: this does run on SIGINT, but the app still exits 130
   (.addShutdownHook
     (Runtime/getRuntime)
     (Thread. (fn cleanup
@@ -122,9 +122,9 @@
                               {:max-delay (:batch-delay options)
                                :max-size (:batch-size options)
                                :max-errors (:error-limit options)})]
-    ; Register cleanup work.
+    ;; Register cleanup work.
     (register-cleanup! scheduler channel writer)
-    ; Block while the threads do their thing.
+    ;; Block while the threads do their thing.
     @(promise)))
 
 
@@ -175,6 +175,6 @@
       (if (:test options)
         (run-test options config)
         (run-daemon options config)))
-    ; NOTE: thread never gets here.
+    ;; NOTE: thread never gets here.
     (shutdown-agents)
     (System/exit 0)))

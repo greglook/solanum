@@ -37,7 +37,6 @@
       (log/warn "Failed to measure uptime:" (pr-str (:err result))))))
 
 
-
 ;; ## Uptime Source
 
 (defrecord UptimeSource

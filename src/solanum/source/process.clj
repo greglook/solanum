@@ -43,7 +43,7 @@
   []
   (let [result (shell/sh "ps" "axo" "pid=,rss=,vsize=,state=,user:32=,group:32=,lstart=,command=")]
     (if (zero? (:exit result))
-      ; IDEA: capture process fd usage and thread counts?
+      ;; IDEA: capture process fd usage and thread counts?
       (keep parse-linux-process (str/split (:out result) #"\n"))
       (log/error "Failed to list processes on linux:" (pr-str (:err result))))))
 
@@ -60,7 +60,6 @@
           (:start-time proc)
           (name (:state proc))
           (:command proc)))
-
 
 
 ;; ## Process Source

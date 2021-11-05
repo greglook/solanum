@@ -94,12 +94,12 @@
                   (let [[collect-at source] entry
                         millis (.until (Instant/now) collect-at ChronoUnit/MILLIS)]
                     (if (< millis 250)
-                      ; Close enough, schedule the source for collection.
+                      ;; Close enough, schedule the source for collection.
                       (do (.remove schedule entry)
                           (schedule-collection schedule defaults source event-chan))
-                      ; Next source collection isn't soon enough, so wait.
+                      ;; Next source collection isn't soon enough, so wait.
                       (.wait schedule millis)))
-                  ; Nothing scheduled.
+                  ;; Nothing scheduled.
                   (.wait schedule 1000)))
               (catch InterruptedException ie
                 (throw ie))
@@ -108,7 +108,7 @@
                 (Thread/sleep 500)))
             (recur))))
       (catch InterruptedException ie
-        ; Exit cleanly
+        ;; Exit cleanly
         nil))))
 
 

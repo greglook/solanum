@@ -32,8 +32,8 @@
   []
   (reduce
     (fn [data line]
-      ; Processes: 284 total, 4 running, 10 stuck, 270 sleeping, 1572 threads
-      ; Load Avg: 2.03, 2.00, 2.07
+      ;; Processes: 284 total, 4 running, 10 stuck, 270 sleeping, 1572 threads
+      ;; Load Avg: 2.03, 2.00, 2.07
       (cond
         (str/starts-with? line "Processes: ")
         (let [[_ total running] (re-matches #"Processes: (\d+) total, (\d+) running, .+" line)]
@@ -51,7 +51,6 @@
         :else data))
     {}
     (:lines (darwin/read-top))))
-
 
 
 ;; ## Load Source

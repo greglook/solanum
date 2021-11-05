@@ -60,7 +60,6 @@
       {:usage (double (/ used (+ used unused)))})))
 
 
-
 ;; ## Load Source
 
 (defrecord MemorySource

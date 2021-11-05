@@ -12,7 +12,6 @@
     "Return a sequence of metrics events collected from the source."))
 
 
-
 ;; ## Mode Support
 
 (defmulti supported?
@@ -26,8 +25,8 @@
 
 (defmethod supported? :default
   [config]
-  ; Assume that sources which do not implement this method do not care what
-  ; type of system they are running on.
+  ;; Assume that sources which do not implement this method do not care what
+  ;; type of system they are running on.
   nil)
 
 
@@ -43,7 +42,6 @@
        (contains? modes# (:mode config#)))))
 
 
-
 ;; ## Construction
 
 (defmulti initialize
@@ -54,7 +52,6 @@
 (defmethod initialize :default
   [config]
   (log/error "No source definition for type" (pr-str (:type config))))
-
 
 
 ;; ## Event Helpers

@@ -82,7 +82,6 @@
    :outputs (into (vec (:outputs a)) (:outputs b))})
 
 
-
 ;; ## Plugin Construction
 
 (defn- configure-source
@@ -162,7 +161,7 @@
 (defn load-files
   "Load multiple files, merge them together, and initialize the plugins."
   [config-paths]
-  ; TODO: warn if defaults include :host
+  ;; TODO: warn if defaults include :host
   (->>
     config-paths
     (mapcat select-configs)

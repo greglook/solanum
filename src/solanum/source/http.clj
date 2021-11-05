@@ -74,7 +74,7 @@
       [false (format "Body content %s is not parseable for data check"
                      (get-in response [:headers "content-type"]))])
 
-    ; else
+    ;; else
     (log/error "Unknown HTTP response check type" (pr-str (:type check)))))
 
 
@@ -93,7 +93,6 @@
               (when (some? value)
                 [attr-key (str value)]))))
         fields))
-
 
 
 ;; ## HTTP Source
