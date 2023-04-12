@@ -38,6 +38,7 @@ solanum: $(uberjar_path) $(reflection-config)
 	$(GRAAL_PATH)/bin/native-image \
 	    --allow-incomplete-classpath \
 	    --report-unsupported-elements-at-runtime \
+	    --enable-url-protocols=http \
 	    --delay-class-initialization-to-runtime=io.netty.handler.ssl.ConscryptAlpnSslEngine \
 	    --delay-class-initialization-to-runtime=io.netty.handler.ssl.ReferenceCountedOpenSslEngine \
 	    --delay-class-initialization-to-runtime=io.netty.util.internal.logging.Log4JLogger \
