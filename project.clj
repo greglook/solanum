@@ -11,14 +11,14 @@
   :pedantic? :abort
 
   :dependencies
-  [[org.clojure/clojure "1.10.3"]
+  [[org.clojure/clojure "1.11.1"]
    [org.clojure/data.json "2.4.0"]
-   [org.clojure/tools.cli "1.0.206"]
-   [org.clojure/tools.logging "1.1.0"]
-   [ch.qos.logback/logback-classic "1.2.6"]
-   [http-kit "2.5.3"]
-   [org.yaml/snakeyaml "1.29"]
-   [riemann-clojure-client "0.5.1"]]
+   [org.clojure/tools.cli "1.0.214"]
+   [org.clojure/tools.logging "1.2.4"]
+   [ch.qos.logback/logback-classic "1.4.6"]
+   [http-kit "2.6.0"]
+   [org.yaml/snakeyaml "2.0"]
+   [riemann-clojure-client "0.5.4"]]
 
   :hiera
   {:cluster-depth 2
@@ -32,7 +32,7 @@
     :source-paths ["dev"]
     :jvm-opts ["-DSOLANUM_LOG_APPENDER=repl"]
     :dependencies
-    [[org.clojure/tools.namespace "1.1.0"]]}
+    [[org.clojure/tools.namespace "1.4.4"]]}
 
    :test
    {:jvm-opts ["-DSOLANUM_LOG_APPENDER=nop"]}
@@ -40,7 +40,7 @@
    :coverage
    {:jvm-opts ["-DSOLANUM_LOG_APPENDER=nop"]
     :plugins
-    [[org.clojure/clojure "1.10.3"]
+    [[org.clojure/clojure "1.11.1"]
      [lein-cloverage "1.1.2"]]}
 
    :svm
