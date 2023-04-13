@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+# vim: ft=bash
+
+set -Eeuo pipefail
+trap cleanup SIGINT SIGTERM ERR EXIT
+
+GRAAL_STATIC='false'
+SOLANUM_OUTPUT=''
+DOCKER_CONTAINER_ID=''
+
+usage() {
+  cat <<EOF
+Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-s] -o output-path
+
+Build solanum inside a linux docker container. Places the compiled binary at
+the provided output path.
+
+Available options:
+
+-h, --help      Print this help and exit
+-v, --verbose   Print script debug info
+-s, --static    Build a statically-compiled executable
+-o, --output    Path to place compiled executable
+EOF
+  exit
+}
+
+msg() {
+  echo >&2 -e "${1-}"
+}
+
+die() {
+  local msg=$1
+  local code=${2-1}
+  msg "$msg"
+  exit "$code"
+}
+
+cleanup() {
+  trap - SIGINT SIGTERM ERR EXIT
+
+  if [[ -n $DOCKER_CONTAINER_ID ]]; then
+    msg "Removing temporary container"
+    docker rm $DOCKER_CONTAINER_ID
+  fi
+}
+
+parse_params() {
+  while :; do
+    case "${1-}" in
+    -h | --help) usage ;;
+    -v | --verbose) set -x ;;
+    -s | --static) GRAAL_STATIC='true' ;;
+    -o | --output)
+      SOLANUM_OUTPUT="${2-}"
+      shift
+      ;;
+    -?*) die "Unknown option: $1" ;;
+    *) break ;;
+    esac
+    shift
+  done
+
+  CMD_ARGS=("$@")
+
+  # check required params and arguments
+  [[ -z "${SOLANUM_OUTPUT-}" ]] && die "Missing required parameter: --output"
+
+  return 0
+}
+
+
+### Script Execution ###
+
+parse_params "$@"
+
+mkdir -p $(dirname $SOLANUM_OUTPUT)
+
+if [[ $GRAAL_STATIC = true ]]; then
+  DOCKER_IMAGE_NAME=solanum-static-builder
+else
+  DOCKER_IMAGE_NAME=solanum-builder
+fi
+
+SOLANUM_VERSION=$(grep defproject project.clj | cut -d ' ' -f 3 | tr -d \")
+
+msg "Building docker image $DOCKER_IMAGE_NAME at $SOLANUM_VERSION"
+docker build --build-arg GRAAL_STATIC=$GRAAL_STATIC -t $DOCKER_IMAGE_NAME:$SOLANUM_VERSION .
+
+DOCKER_CONTAINER_ID=$(docker create $DOCKER_IMAGE_NAME:$SOLANUM_VERSION)
+docker cp "${DOCKER_CONTAINER_ID}:/opt/solanum/solanum" "$SOLANUM_OUTPUT"
+
+msg "Wrote executable to $SOLANUM_OUTPUT"
+ls -lh $SOLANUM_OUTPUT
