@@ -52,4 +52,5 @@
    {:target-path "target/uberjar"
     :uberjar-name "solanum.jar"
     :main solanum.main
+    :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
     :aot :all}})
