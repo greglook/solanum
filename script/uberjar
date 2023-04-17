@@ -17,4 +17,4 @@ cleanup() {
 }
 
 # Build the uberjar.
-lein uberjar
+lein with-profile +svm uberjar

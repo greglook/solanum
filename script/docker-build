@@ -4,9 +4,10 @@
 set -Eeuo pipefail
 trap cleanup SIGINT SIGTERM ERR EXIT
 
-GRAAL_STATIC='false'
-SOLANUM_OUTPUT=''
+DOCKER_IMAGE_NAME=solanum-builder
 DOCKER_CONTAINER_ID=''
+SOLANUM_VERSION=$(grep defproject project.clj | cut -d ' ' -f 3 | tr -d \")
+SOLANUM_OUTPUT=''
 
 usage() {
   cat <<EOF
@@ -19,20 +20,19 @@ Available options:
 
 -h, --help      Print this help and exit
 -v, --verbose   Print script debug info
--s, --static    Build a statically-compiled executable
 -o, --output    Path to place compiled executable
 EOF
   exit
 }
 
 msg() {
-  echo >&2 -e "${1-}"
+  echo >&2 -e "\033[36m${1-}\033[0m"
 }
 
 die() {
   local msg=$1
   local code=${2-1}
-  msg "$msg"
+  echo >&2 -e "\033[31m${msg}\033[0m"
   exit "$code"
 }
 
@@ -41,7 +41,7 @@ cleanup() {
 
   if [[ -n $DOCKER_CONTAINER_ID ]]; then
     msg "Removing temporary container"
-    docker rm $DOCKER_CONTAINER_ID
+    docker rm -f $DOCKER_CONTAINER_ID
   fi
 }
 
@@ -50,7 +50,6 @@ parse_params() {
     case "${1-}" in
     -h | --help) usage ;;
     -v | --verbose) set -x ;;
-    -s | --static) GRAAL_STATIC='true' ;;
     -o | --output)
       SOLANUM_OUTPUT="${2-}"
       shift
@@ -76,18 +75,30 @@ parse_params "$@"
 
 mkdir -p $(dirname $SOLANUM_OUTPUT)
 
-if [[ $GRAAL_STATIC = true ]]; then
-  DOCKER_IMAGE_NAME=solanum-static-builder
-else
-  DOCKER_IMAGE_NAME=solanum-builder
-fi
+msg "Building docker image $DOCKER_IMAGE_NAME for $SOLANUM_VERSION"
+docker build -t $DOCKER_IMAGE_NAME:$SOLANUM_VERSION .
 
-SOLANUM_VERSION=$(grep defproject project.clj | cut -d ' ' -f 3 | tr -d \")
+DOCKER_CONTAINER_ID=$(docker create --platform linux/amd64 $DOCKER_IMAGE_NAME:$SOLANUM_VERSION)
+[[ -n $DOCKER_CONTAINER_ID ]] || die "Couldn't create docker build container" 2
 
-msg "Building docker image $DOCKER_IMAGE_NAME at $SOLANUM_VERSION"
-docker build --build-arg GRAAL_STATIC=$GRAAL_STATIC -t $DOCKER_IMAGE_NAME:$SOLANUM_VERSION .
+docker start $DOCKER_CONTAINER_ID
 
-DOCKER_CONTAINER_ID=$(docker create $DOCKER_IMAGE_NAME:$SOLANUM_VERSION)
+msg "Copying code"
+tar -cf - project.clj resources src svm script \
+    | docker cp - "${DOCKER_CONTAINER_ID}:/opt/solanum/"
+
+msg "Building uberjar"
+docker exec -it \
+    $DOCKER_CONTAINER_ID \
+    ./script/uberjar
+
+msg "Compiling native image"
+docker exec \
+    --env GRAAL_XMX=4500m \
+    $DOCKER_CONTAINER_ID \
+    ./script/compile \
+    --jar /opt/solanum/solanum.jar
+
 docker cp "${DOCKER_CONTAINER_ID}:/opt/solanum/solanum" "$SOLANUM_OUTPUT"
 
 msg "Wrote executable to $SOLANUM_OUTPUT"

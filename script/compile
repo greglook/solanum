@@ -4,7 +4,6 @@
 set -Eeuo pipefail
 
 GRAAL_XMX=${GRAAL_XMX:-"6000m"}
-GRAAL_STATIC=${GRAAL_STATIC:-}
 SOLANUM_JAR="target/uberjar/solanum.jar"
 SOLANUM_OUTPUT="solanum"
 
@@ -16,11 +15,10 @@ Compile a solanum uberjar into a native-image for the current platform.
 
 Available options:
 
--h, --help      Print this help and exit
--v, --verbose   Print script debug info
--s, --static    Build a statically-compiled executable
 -j, --jar       Path to the uberjar
 -o, --output    Path to place compiled executable
+-v, --verbose   Print script debug info
+-h, --help      Print this help and exit
 EOF
   exit
 }
@@ -41,7 +39,6 @@ parse_params() {
     case "${1-}" in
     -h | --help) usage ;;
     -v | --verbose) set -x ;;
-    -s | --static) GRAAL_STATIC='true' ;;
     -j | --jar)
       SOLANUM_JAR="${2-}"
       shift
@@ -95,8 +92,4 @@ args=(
     "--verbose"
 )
 
-if [[ $GRAAL_STATIC = true ]]; then
-    args+=("--static")
-fi
-
-"$NATIVE_IMAGE_CMD" "${args[@]}"
+exec "$NATIVE_IMAGE_CMD" "${args[@]}"
