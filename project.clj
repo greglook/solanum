@@ -7,15 +7,16 @@
   :aliases
   {"coverage" ["with-profile" "+coverage" "cloverage"]}
 
-  :deploy-branches ["master"]
+  :deploy-branches ["main"]
   :pedantic? :abort
 
   :dependencies
   [[org.clojure/clojure "1.11.1"]
    [org.clojure/data.json "2.4.0"]
    [org.clojure/tools.cli "1.0.214"]
+   ;; TODO: switch directly to dialog interfaces?
    [org.clojure/tools.logging "1.2.4"]
-   [ch.qos.logback/logback-classic "1.4.6"]
+   [com.amperity/dialog "2.0.115"]
    [http-kit "2.6.0"]
    [org.yaml/snakeyaml "2.0"]
    [riemann-clojure-client "0.5.4"]]
@@ -30,27 +31,30 @@
   {:repl
    {:pedantic? false
     :source-paths ["dev"]
-    :jvm-opts ["-DSOLANUM_LOG_APPENDER=repl"]
+    :jvm-opts ["-Ddialog.profile=repl"]
     :dependencies
     [[org.clojure/tools.namespace "1.4.4"]]}
 
    :test
-   {:jvm-opts ["-DSOLANUM_LOG_APPENDER=nop"]}
+   {:jvm-opts ["-Ddialog.profile=test"]}
 
    :coverage
-   {:jvm-opts ["-DSOLANUM_LOG_APPENDER=nop"]
+   {:jvm-opts ["-Ddialog.profile=test"]
     :plugins
     [[org.clojure/clojure "1.11.1"]
-     [lein-cloverage "1.1.2"]]}
+     [lein-cloverage "RELEASE"]]}
 
    :svm
    {:java-source-paths ["svm/java"]
     :dependencies
-    [[com.oracle.substratevm/svm "19.2.1" :scope "provided"]]}
+    [[org.graalvm.nativeimage/svm "22.3.1" :scope "provided"]
+     [com.github.clj-easy/graal-build-time "0.1.4"]]}
 
    :uberjar
    {:target-path "target/uberjar"
     :uberjar-name "solanum.jar"
+    :global-vars {*assert* false}
+    :jvm-opts ["-Dclojure.compiler.direct-linking=true"
+               "-Dclojure.spec.skip-macros=true"]
     :main solanum.main
-    :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
     :aot :all}})
