@@ -70,26 +70,37 @@ NATIVE_IMAGE_CMD="$GRAAL_HOME/bin/native-image"
 [[ -n "$GRAAL_HOME" ]] || die "GRAAL_HOME is not set"
 [[ -x $NATIVE_IMAGE_CMD ]] || die "native-image tool not available at $NATIVE_IMAGE_CMD"
 
-export JAVA_HOME=$GRAAL_HOME
-export PATH=$GRAAL_HOME/bin:$PATH
+export JAVA_HOME=$GRAAL_HOME/bin
+export PATH=$JAVA_HOME:$PATH
 
 mkdir -p $(dirname $SOLANUM_OUTPUT)
 
 args=(
     "-jar" "$SOLANUM_JAR"
+    "-H:Name=solanum"
+    "-H:+ReportExceptionStackTraces"
+    # "-H:+PrintAnalysisCallTree"
+    # "-H:+DashboardAll"
+    # "-H:DashboardDump=reports/dump"
+    # "-H:+DashboardPretty"
+    # "-H:+DashboardJson"
+    "-H:ReportAnalysisForbiddenType=java.awt.Toolkit:InHeap,Allocated"
+    "--verbose"
+    "--no-fallback"
     "--native-image-info"
-    "--no-server"
-    "--allow-incomplete-classpath"
-    "--report-unsupported-elements-at-runtime"
-    "--enable-url-protocols=http,https"
-    "--initialize-at-run-time=io.netty.handler.ssl.ConscryptAlpnSslEngine"
-    "--initialize-at-run-time=io.netty.handler.ssl.ReferenceCountedOpenSslEngine"
-    "--initialize-at-run-time=io.netty.util.internal.logging.Log4JLogger"
+    "--enable-preview"
+    # "--no-server"
+    # "--enable-url-protocols=http,https"
+    # "--enable-http --enable-https"
+    # "--report-unsupported-elements-at-runtime"
+    # "--initialize-at-run-time=io.netty.handler.ssl.ConscryptAlpnSslEngine"
+    # "--initialize-at-run-time=io.netty.handler.ssl.ReferenceCountedOpenSslEngine"
+    # "--initialize-at-run-time=io.netty.util.internal.logging.Log4JLogger"
+    "--initialize-at-run-time=org.httpkit.client.ClientSslEngineFactory\$SSLHolder"
     "-H:ReflectionConfigurationFiles=svm/reflection-config.json"
     "-J-Xmx$GRAAL_XMX"
-    "-J-Dclojure.spec.skip-macros=true"
-    "-J-Dclojure.compiler.direct-linking=true"
-    "--verbose"
+    # "-J-Dclojure.spec.skip-macros=true"
+    # "-J-Dclojure.compiler.direct-linking=true"
 )
 
 exec "$NATIVE_IMAGE_CMD" "${args[@]}"

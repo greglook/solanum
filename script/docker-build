@@ -88,7 +88,7 @@ tar -cf - project.clj resources src svm script \
     | docker cp - "${DOCKER_CONTAINER_ID}:/opt/solanum/"
 
 msg "Building uberjar"
-docker exec -it \
+docker exec -t \
     $DOCKER_CONTAINER_ID \
     ./script/uberjar
 
@@ -96,8 +96,7 @@ msg "Compiling native image"
 docker exec \
     --env GRAAL_XMX=4500m \
     $DOCKER_CONTAINER_ID \
-    ./script/compile \
-    --jar /opt/solanum/solanum.jar
+    ./script/compile
 
 docker cp "${DOCKER_CONTAINER_ID}:/opt/solanum/solanum" "$SOLANUM_OUTPUT"
 

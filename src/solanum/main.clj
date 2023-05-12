@@ -21,9 +21,9 @@
       (let [props (doto (java.util.Properties.)
                     (.load props-reader))
             {:strs [groupId artifactId version revision]} props]
-        (format "%s/%s %s (%s)"
-                groupId artifactId version
-                (str/trim-newline revision))))
+        (str (format "%s/%s %s" groupId artifactId version)
+             (when-not (str/blank? revision)
+               (format " (%s)" (str/trim-newline revision))))))
     "HEAD"))
 
 
